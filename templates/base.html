@@ -14,7 +14,7 @@
     <!-- Custom CSS -->
     <style>
         :root {
-            --primary-color: #ffcb05; /* Yellow */
+            --primary-color: #ffd700; /* Lighter yellow */
             --secondary-color: #3c5aa6; /* Blue */
         }
         
@@ -39,8 +39,8 @@
         }
         
         .btn-primary:hover {
-            background-color: #e5b70a;
-            border-color: #e5b70a;
+            background-color: #ffed4a; /* Lighter hover state */
+            border-color: #ffed4a;
             color: #212529;
         }
         
@@ -97,6 +97,17 @@
         
         .logout-btn:hover {
             background-color: #f8f9fa;
+        }
+        
+        /* Add a subtle shadow to the navbar for better contrast */
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        /* Make the yellow background slightly more visible */
+        .card-header.bg-yellow {
+            background-color: var(--primary-color) !important;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
         }
     </style>
     
