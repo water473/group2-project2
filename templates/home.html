@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - PokeTrade{% endblock %}
+
+{% block content %}
+<div class="row align-items-center mb-5">
+    <div class="col-md-6">
+        <h1 class="mb-3">Welcome to PokeTrade!</h1>
+        <p class="lead">The ultimate platform for trading, collecting, and showcasing your Pokémon collection.</p>
+        <p>Join trainers from around the world in building your collection, trading rare Pokémon, and connecting with fellow enthusiasts.</p>
+        
+        {% if not user.is_authenticated %}
+            <div class="d-grid gap-2 d-md-flex mt-4">
+                <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-user-plus me-2"></i>Get Started
+                </a>
+                <a href="{% url 'login' %}" class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-sign-in-alt me-2"></i>Login
+                </a>
+            </div>
+        {% else %}
+            <div class="d-grid gap-2 d-md-flex mt-4">
+                <a href="{% url 'pokemon:collection' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-th me-2"></i>View My Collection
+                </a>
+                <a href="{% url 'marketplace:home' %}" class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-store me-2"></i>Visit Marketplace
+                </a>
+            </div>
+        {% endif %}
+    </div>
+    <div class="col-md-6 text-center">
+        <img src="/static/images/pokemon-trading.png" alt="Pokémon Trading" class="img-fluid rounded shadow" style="max-height: 350px;">
+    </div>
+</div>
+
+{% if not user.is_authenticated %}
+    <div class="row my-5">
+        <div class="col-12 text-center">
+            <h2 class="mb-4">Join the PokéTrade Community</h2>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <i class="fas fa-th fa-3x mb-3 text-primary"></i>
+                            <h3 class="card-title h5">Collect Pokémon</h3>
+                            <p class="card-text">Build your collection of rare and powerful Pokémon from all generations.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <i class="fas fa-exchange-alt fa-3x mb-3 text-primary"></i>
+                            <h3 class="card-title h5">Trade with Others</h3>
+                            <p class="card-text">Connect with trainers worldwide to trade Pokémon and complete your collection.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <i class="fas fa-store fa-3x mb-3 text-primary"></i>
+                            <h3 class="card-title h5">Buy & Sell</h3>
+                            <p class="card-text">Use our marketplace to buy missing Pokémon or sell your extras for coins.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="row my-5">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-yellow text-white">
+                    <h3 class="mb-0">Your Dashboard</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-4 mb-md-0">
+                            <h4><i class="fas fa-bell me-2"></i>Recent Activity</h4>
+                            <ul class="list-group mt-3">
+                                {% if recent_activities %}
+                                    {% for activity in recent_activities %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            {{ activity.description }}
+                                            <small class="text-muted">{{ activity.timestamp|date:"M d, H:i" }}</small>
+                                        </li>
+                                    {% endfor %}
+                                {% else %}
+                                    <li class="list-group-item text-center text-muted">No recent activity</li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h4><i class="fas fa-fire me-2"></i>Your Stats</h4>
+                            <div class="row row-cols-2 g-3 mt-2">
+                                <div class="col">
+                                    <div class="p-3 bg-light rounded text-center">
+                                        <h5 class="mb-0">{{ user.profile.pokemon_count|default:"0" }}</h5>
+                                        <small class="text-muted">Pokémon Owned</small>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="p-3 bg-light rounded text-center">
+                                        <h5 class="mb-0">{{ user.profile.trade_count|default:"0" }}</h5>
+                                        <small class="text-muted">Trades Completed</small>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="p-3 bg-light rounded text-center">
+                                        <h5 class="mb-0">{{ user.profile.coins|default:"0" }}</h5>
+                                        <small class="text-muted">Coins</small>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="p-3 bg-light rounded text-center">
+                                        <h5 class="mb-0">{{ user.profile.market_listings|default:"0" }}</h5>
+                                        <small class="text-muted">Active Listings</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+{% if featured_pokemon %}
+<div class="row my-5">
+    <div class="col-12 text-center mb-4">
+        <h2>Featured Pokémon</h2>
+        <p class="text-muted">Check out these rare finds in the marketplace!</p>
+    </div>
+    
+    <div class="row row-cols-1 row-cols-md-4 g-4">
+        {% for pokemon in featured_pokemon %}
+            <div class="col">
+                <div class="card h-100 pokemon-card">
+                    <div class="position-absolute top-0 end-0 m-2">
+                        <span class="badge bg-warning rounded-pill">{{ pokemon.price }} coins</span>
+                    </div>
+                    <img src="{{ pokemon.image_url }}" class="card-img-top" alt="{{ pokemon.name }}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ pokemon.name }}</h5>
+                        <div class="mb-2">
+                            <span class="badge bg-secondary pokemon-type type-{{ pokemon.primary_type }}">
+                                {{ pokemon.primary_type }}
+                            </span>
+                            {% if pokemon.secondary_type %}
+                                <span class="badge bg-secondary pokemon-type type-{{ pokemon.secondary_type }}">
+                                    {{ pokemon.secondary_type }}
+                                </span>
+                            {% endif %}
+                        </div>
+                        <p class="card-text">
+                            <span class="rarity-{{ pokemon.rarity }}">
+                                {{ pokemon.get_rarity_display }}
+                            </span>
+                        </p>
+                        <p class="card-text">
+                            <small class="text-muted">
+                                Seller: {{ pokemon.seller }}<br>
+                                Listed: {{ pokemon.listed_date }}
+                            </small>
+                        </p>
+                    </div>
+                    <div class="card-footer">
+                        <div class="d-grid">
+                            <a href="#" class="btn btn-primary">View Listing</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %} 

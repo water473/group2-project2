@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+
+{% block title %}Messages - PokeTrade{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1 class="mb-0">Messages</h1>
+        <p class="lead">Communicate with other trainers</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <!-- Disabled until messaging:new_message URL is implemented -->
+        <button class="btn btn-primary" disabled>
+            <i class="fas fa-pen me-2"></i>New Message
+        </button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <!-- Sidebar Navigation -->
+        <div class="card shadow mb-4">
+            <div class="card-header bg-yellow text-white">
+                <h5 class="mb-0">Folders</h5>
+            </div>
+            <div class="list-group list-group-flush">
+                <!-- Keep the inbox URL since it exists -->
+                <a href="{% url 'messaging:inbox' %}" class="list-group-item list-group-item-action {% if folder == 'inbox' %}active{% endif %}">
+                    <i class="fas fa-inbox me-2"></i>Inbox
+                    {% if unread_count > 0 %}
+                        <span class="badge bg-primary rounded-pill float-end">{{ unread_count }}</span>
+                    {% endif %}
+                </a>
+                <!-- Disabled until messaging:sent_messages URL is implemented -->
+                <button class="list-group-item list-group-item-action {% if folder == 'sent' %}active{% endif %}" disabled>
+                    <i class="fas fa-paper-plane me-2"></i>Sent
+                </button>
+                <!-- Disabled until messaging:archived_messages URL is implemented -->
+                <button class="list-group-item list-group-item-action {% if folder == 'archived' %}active{% endif %}" disabled>
+                    <i class="fas fa-archive me-2"></i>Archived
+                </button>
+            </div>
+        </div>
+
+        <!-- Quick Contacts -->
+        <div class="card shadow">
+            <div class="card-header bg-yellow text-white">
+                <h5 class="mb-0">Recent Contacts</h5>
+            </div>
+            <div class="list-group list-group-flush">
+                {% if recent_contacts %}
+                    {% for contact in recent_contacts %}
+                        <!-- Disabled until messaging:new_message URL is implemented -->
+                        <div class="list-group-item list-group-item-action">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <img src="{{ contact.profile.avatar_url|default:'https://via.placeholder.com/40' }}" class="rounded-circle" width="40" height="40" alt="{{ contact.username }}">
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <strong>{{ contact.username }}</strong>
+                                    <small class="d-block text-muted">{{ contact.profile.trainer_level }} Trainer</small>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="list-group-item text-center text-muted py-3">
+                        <i class="fas fa-users mb-2" style="font-size: 2rem;"></i>
+                        <p class="mb-0">No recent contacts</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-9">
+        <!-- Message List -->
+        <div class="card shadow">
+            <div class="card-header bg-yellow text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">
+                        {% if folder == 'inbox' %}
+                            Inbox
+                        {% elif folder == 'sent' %}
+                            Sent Messages
+                        {% elif folder == 'archived' %}
+                            Archived Messages
+                        {% endif %}
+                    </h3>
+                    {% if messages_list %}
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-cog me-1"></i>Actions
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <!-- Disabled until messaging:mark_all_read URL is implemented -->
+                                    <button type="button" class="dropdown-item" disabled>
+                                        <i class="fas fa-check-double me-2"></i>Mark All Read
+                                    </button>
+                                </li>
+                                {% if folder == 'inbox' %}
+                                    <li>
+                                        <!-- Disabled until messaging:archive_all URL is implemented -->
+                                        <button type="button" class="dropdown-item" disabled>
+                                            <i class="fas fa-archive me-2"></i>Archive All
+                                        </button>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card-body p-0">
+                {% if messages_list %}
+                    <div class="list-group list-group-flush">
+                        {% for message in messages_list %}
+                            <!-- Disabled until messaging:view_message URL is implemented -->
+                            <div class="list-group-item list-group-item-action p-3 {% if not message.is_read and folder == 'inbox' %}list-group-item-primary{% endif %}">
+                                <div class="d-flex w-100 justify-content-between align-items-center">
+                                    <div>
+                                        {% if folder == 'inbox' %}
+                                            <div class="d-flex align-items-center">
+                                                <img src="{{ message.sender.profile.avatar_url|default:'https://via.placeholder.com/32' }}" class="rounded-circle me-2" width="32" height="32" alt="{{ message.sender.username }}">
+                                                <strong>{{ message.sender.username }}</strong>
+                                            </div>
+                                        {% elif folder == 'sent' %}
+                                            <div class="d-flex align-items-center">
+                                                <img src="{{ message.recipient.profile.avatar_url|default:'https://via.placeholder.com/32' }}" class="rounded-circle me-2" width="32" height="32" alt="{{ message.recipient.username }}">
+                                                <span>To: <strong>{{ message.recipient.username }}</strong></span>
+                                            </div>
+                                        {% endif %}
+                                        <h5 class="mt-1 mb-1">{{ message.subject }}</h5>
+                                        <p class="mb-1 text-truncate" style="max-width: 500px;">{{ message.content|truncatechars:100 }}</p>
+                                    </div>
+                                    <div class="text-end">
+                                        <small class="text-muted">{{ message.created_at|date:"M d, Y" }}</small>
+                                        {% if not message.is_read and folder == 'inbox' %}
+                                            <span class="badge bg-primary ms-2">New</span>
+                                        {% endif %}
+                                        {% if message.related_listing %}
+                                            <span class="badge bg-warning ms-2">Listing</span>
+                                        {% endif %}
+                                        {% if message.related_trade %}
+                                            <span class="badge bg-info ms-2">Trade</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Pagination -->
+                    {% if messages_list.has_other_pages %}
+                        <nav aria-label="Message pagination" class="p-3">
+                            <ul class="pagination justify-content-center mb-0">
+                                {% if messages_list.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ messages_list.previous_page_number }}" aria-label="Previous">
+                                            <span aria-hidden="true">&laquo;</span>
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#" aria-label="Previous">
+                                            <span aria-hidden="true">&laquo;</span>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                                
+                                {% for i in messages_list.paginator.page_range %}
+                                    {% if messages_list.number == i %}
+                                        <li class="page-item active"><a class="page-link" href="#">{{ i }}</a></li>
+                                    {% else %}
+                                        <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if messages_list.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ messages_list.next_page_number }}" aria-label="Next">
+                                            <span aria-hidden="true">&raquo;</span>
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#" aria-label="Next">
+                                            <span aria-hidden="true">&raquo;</span>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center p-5">
+                        {% if folder == 'inbox' %}
+                            <i class="fas fa-inbox mb-3" style="font-size: 4rem; opacity: 0.3;"></i>
+                            <h4>Your inbox is empty</h4>
+                            <p class="text-muted">Messages from other trainers will appear here</p>
+                        {% elif folder == 'sent' %}
+                            <i class="fas fa-paper-plane mb-3" style="font-size: 4rem; opacity: 0.3;"></i>
+                            <h4>No sent messages</h4>
+                            <p class="text-muted">Messages you send will appear here</p>
+                        {% elif folder == 'archived' %}
+                            <i class="fas fa-archive mb-3" style="font-size: 4rem; opacity: 0.3;"></i>
+                            <h4>No archived messages</h4>
+                            <p class="text-muted">Archived messages will appear here</p>
+                        {% endif %}
+                        <!-- Disabled until messaging:new_message URL is implemented -->
+                        <button class="btn btn-primary mt-2" disabled>
+                            <i class="fas fa-pen me-2"></i>Compose a Message
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

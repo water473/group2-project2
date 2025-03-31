@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ message.subject }} - PokeTrade{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'messaging:inbox' %}">Messages</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ message.subject }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header bg-yellow text-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">{{ message.subject }}</h3>
+            <div>
+                {% if message_folder == 'inbox' %}
+                    <!-- Disabled until messaging:archive_message URL is implemented -->
+                    <button type="button" class="btn btn-sm btn-light" title="Archive" disabled>
+                        <i class="fas fa-archive"></i>
+                    </button>
+                {% endif %}
+                <!-- Disabled until messaging:delete_message URL is implemented -->
+                <button type="button" class="btn btn-sm btn-light" title="Delete" disabled>
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="d-flex align-items-center mb-3">
+            {% if message_folder == 'inbox' %}
+                <img src="{{ message.sender.profile.avatar_url|default:'https://via.placeholder.com/48' }}" class="rounded-circle me-3" width="48" height="48" alt="{{ message.sender.username }}">
+                <div>
+                    <div class="fs-5 fw-bold">From: {{ message.sender.username }}</div>
+                    <div class="text-muted">{{ message.created_at|date:"F j, Y, g:i a" }}</div>
+                </div>
+            {% else %}
+                <img src="{{ message.recipient.profile.avatar_url|default:'https://via.placeholder.com/48' }}" class="rounded-circle me-3" width="48" height="48" alt="{{ message.recipient.username }}">
+                <div>
+                    <div class="fs-5 fw-bold">To: {{ message.recipient.username }}</div>
+                    <div class="text-muted">{{ message.created_at|date:"F j, Y, g:i a" }}</div>
+                </div>
+            {% endif %}
+        </div>
+
+        {% if message.related_listing %}
+            <div class="alert alert-warning mb-4">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-tag fa-2x me-3"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="mb-1">Related Marketplace Listing</h5>
+                        <p class="mb-1">
+                            <!-- Disabled until marketplace:view_listing URL is implemented -->
+                            <span class="text-primary">
+                                {{ message.related_listing.pokemon.pokemon.name }} - {{ message.related_listing.price }} coins
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        {% if message.related_trade %}
+            <div class="alert alert-info mb-4">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exchange-alt fa-2x me-3"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="mb-1">Related Trade</h5>
+                        <p class="mb-1">
+                            <!-- Disabled until trading:view_trade URL is implemented -->
+                            <span class="text-primary">
+                                Trade with {{ message.sender.username if message_folder == 'inbox' else message.recipient.username }} - {{ message.related_trade.get_status_display }}
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="p-4 bg-light rounded border mb-4">
+            {{ message.content|linebreaks }}
+        </div>
+
+        {% if message_folder == 'inbox' %}
+            <hr>
+            <h4>Reply</h4>
+            <!-- Disabled until messaging:reply_message URL is implemented -->
+            <div>
+                <div class="mb-3">
+                    <label for="reply-content" class="form-label">Your response</label>
+                    <textarea class="form-control" id="reply-content" rows="5" disabled></textarea>
+                </div>
+                <div class="text-end">
+                    <button type="button" class="btn btn-primary" disabled>
+                        <i class="fas fa-reply me-2"></i>Send Reply
+                    </button>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if message_thread and message_thread|length > 0 %}
+    <div class="card shadow">
+        <div class="card-header bg-yellow text-white">
+            <h3 class="mb-0">Message History</h3>
+        </div>
+        <div class="list-group list-group-flush">
+            {% for thread_message in message_thread %}
+                <div class="list-group-item p-4 {% if thread_message.sender == user %}bg-light{% endif %}">
+                    <div class="d-flex">
+                        <div class="flex-shrink-0">
+                            <img src="{{ thread_message.sender.profile.avatar_url|default:'https://via.placeholder.com/40' }}" class="rounded-circle me-3" width="40" height="40" alt="{{ thread_message.sender.username }}">
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <strong>{{ thread_message.sender.username }}</strong>
+                                    {% if thread_message.sender == user %}
+                                        <span class="badge bg-secondary ms-2">You</span>
+                                    {% endif %}
+                                </div>
+                                <small class="text-muted">{{ thread_message.created_at|date:"M d, Y, g:i a" }}</small>
+                            </div>
+                            <div class="mt-2">
+                                {{ thread_message.content|linebreaks }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

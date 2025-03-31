@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ listing.pokemon.pokemon.name }} Listing - PokeTrade{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'marketplace:home' %}">Marketplace</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ listing.pokemon.pokemon.name }} Listing</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Pokémon Image and Basic Info -->
+    <div class="col-md-4 mb-4">
+        <div class="card shadow h-100">
+            <div class="position-absolute top-0 end-0 m-2">
+                <span class="badge bg-warning rounded-pill fs-5">{{ listing.price }} coins</span>
+            </div>
+            <img src="{{ listing.pokemon.pokemon.image_url }}" class="card-img-top" alt="{{ listing.pokemon.pokemon.name }}">
+            <div class="card-body">
+                <h2 class="card-title">{{ listing.pokemon.pokemon.name }}</h2>
+                {% if listing.pokemon.nickname %}
+                    <h6 class="card-subtitle mb-2 text-muted">Nickname: "{{ listing.pokemon.nickname }}"</h6>
+                {% endif %}
+                <div class="my-3">
+                    <span class="badge bg-secondary pokemon-type type-{{ listing.pokemon.pokemon.primary_type }} fs-6">
+                        {{ listing.pokemon.pokemon.primary_type }}
+                    </span>
+                    {% if listing.pokemon.pokemon.secondary_type %}
+                        <span class="badge bg-secondary pokemon-type type-{{ listing.pokemon.pokemon.secondary_type }} fs-6">
+                            {{ listing.pokemon.pokemon.secondary_type }}
+                        </span>
+                    {% endif %}
+                </div>
+                <p class="card-text fs-5">
+                    <span class="rarity-{{ listing.pokemon.pokemon.rarity }}">
+                        {{ listing.pokemon.pokemon.get_rarity_display }}
+                    </span>
+                </p>
+                <div class="d-grid gap-2 mt-3">
+                    {% if user != listing.seller %}
+                        <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#purchaseModal">
+                            <i class="fas fa-shopping-cart me-2"></i>Purchase Now
+                        </button>
+                        <a href="{% url 'marketplace:save_listing' listing.id %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-bookmark me-2"></i>Save for Later
+                        </a>
+                        <a href="{% url 'messaging:new_message' %}?to={{ listing.seller.username }}&subject=About your {{ listing.pokemon.pokemon.name }} listing" class="btn btn-outline-primary">
+                            <i class="fas fa-comment me-2"></i>Message Seller
+                        </a>
+                    {% else %}
+                        <a href="{% url 'marketplace:edit_listing' listing.id %}" class="btn btn-warning">
+                            <i class="fas fa-edit me-2"></i>Edit Listing
+                        </a>
+                        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                            <i class="fas fa-trash me-2"></i>Delete Listing
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Listing Details -->
+    <div class="col-md-8">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-yellow text-white">
+                <h3 class="mb-0">Listing Details</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Seller:</strong> <a href="{% url 'accounts:profile' username=listing.seller.username %}">{{ listing.seller.username }}</a></p>
+                        <p><strong>Listed on:</strong> {{ listing.created_at|date:"F j, Y" }}</p>
+                        <p><strong>Price:</strong> <span class="fs-4 text-warning">{{ listing.price }} coins</span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Your balance:</strong> <span class="fs-4 {% if user.profile.coins >= listing.price %}text-success{% else %}text-danger{% endif %}">{{ user.profile.coins }} coins</span></p>
+                        {% if user.profile.coins < listing.price %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>You don't have enough coins to purchase this Pokémon.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <hr>
+                <h4>Seller's Description</h4>
+                <div class="p-3 bg-light rounded">
+                    {% if listing.description %}
+                        <p>{{ listing.description|linebreaks }}</p>
+                    {% else %}
+                        <p class="text-muted fst-italic">No description provided by the seller.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Pokémon Stats -->
+        <div class="card shadow">
+            <div class="card-header bg-yellow text-white">
+                <h3 class="mb-0">Pokémon Details</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4>Basic Information</h4>
+                        <ul class="list-group mb-3">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Base Value
+                                <span class="badge bg-primary rounded-pill">{{ listing.pokemon.pokemon.base_value }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Height
+                                <span>{{ listing.pokemon.pokemon.height }} m</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Weight
+                                <span>{{ listing.pokemon.pokemon.weight }} kg</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Date Acquired
+                                <span>{{ listing.pokemon.acquired_date|date:"M d, Y" }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h4>Stats</h4>
+                        <div class="mb-3">
+                            <label for="hp-stat" class="form-label">HP</label>
+                            <div class="progress" style="height: 25px;">
+                                <div class="progress-bar bg-success" style="width: {{ listing.pokemon.pokemon.hp_stat }}%;" id="hp-stat">
+                                    {{ listing.pokemon.pokemon.hp_stat }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="attack-stat" class="form-label">Attack</label>
+                            <div class="progress" style="height: 25px;">
+                                <div class="progress-bar bg-danger" style="width: {{ listing.pokemon.pokemon.attack_stat }}%;" id="attack-stat">
+                                    {{ listing.pokemon.pokemon.attack_stat }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="defense-stat" class="form-label">Defense</label>
+                            <div class="progress" style="height: 25px;">
+                                <div class="progress-bar bg-info" style="width: {{ listing.pokemon.pokemon.defense_stat }}%;" id="defense-stat">
+                                    {{ listing.pokemon.pokemon.defense_stat }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="speed-stat" class="form-label">Speed</label>
+                            <div class="progress" style="height: 25px;">
+                                <div class="progress-bar bg-warning" style="width: {{ listing.pokemon.pokemon.speed_stat }}%;" id="speed-stat">
+                                    {{ listing.pokemon.pokemon.speed_stat }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Purchase Modal -->
+<div class="modal fade" id="purchaseModal" tabindex="-1" aria-labelledby="purchaseModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-yellow text-white">
+                <h5 class="modal-title" id="purchaseModalLabel">Confirm Purchase</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to purchase <strong>{{ listing.pokemon.pokemon.name }}</strong> for <strong>{{ listing.price }} coins</strong>?</p>
+                
+                {% if user.profile.coins < listing.price %}
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>You don't have enough coins to complete this purchase.
+                    </div>
+                {% else %}
+                    <p>Your balance after this purchase will be <strong>{{ user.profile.coins|add:"-"|add:listing.price }} coins</strong>.</p>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{% url 'marketplace:purchase' listing.id %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary" {% if user.profile.coins < listing.price %}disabled{% endif %}>
+                        Confirm Purchase
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Listing Modal -->
+{% if user == listing.seller %}
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">Delete Listing</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this listing for <strong>{{ listing.pokemon.pokemon.name }}</strong>?</p>
+                <p>This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{% url 'marketplace:delete_listing' listing.id %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Delete Listing</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %} 

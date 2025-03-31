@@ -1,0 +1,139 @@
+/* Custom styles for PokeTrade */
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+}
+
+/* Navbar customization */
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+/* Custom navbar background */
+.bg-yellow {
+    background-color: #ffc107 !important; /* Bootstrap yellow */
+}
+
+/* Cards for Pokemon */
+.pokemon-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.pokemon-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.pokemon-card .card-img-top {
+    height: 200px;
+    object-fit: contain;
+    background-color: #f0f0f0;
+    padding: 15px;
+}
+
+.pokemon-card .card-title {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.pokemon-card .pokemon-type {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    color: white;
+    font-size: 0.8rem;
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+
+/* Type colors */
+.type-normal { background-color: #A8A878; }
+.type-fire { background-color: #F08030; }
+.type-water { background-color: #6890F0; }
+.type-grass { background-color: #78C850; }
+.type-electric { background-color: #F8D030; }
+.type-ice { background-color: #98D8D8; }
+.type-fighting { background-color: #C03028; }
+.type-poison { background-color: #A040A0; }
+.type-ground { background-color: #E0C068; }
+.type-flying { background-color: #A890F0; }
+.type-psychic { background-color: #F85888; }
+.type-bug { background-color: #A8B820; }
+.type-rock { background-color: #B8A038; }
+.type-ghost { background-color: #705898; }
+.type-dragon { background-color: #7038F8; }
+.type-dark { background-color: #705848; }
+.type-steel { background-color: #B8B8D0; }
+.type-fairy { background-color: #EE99AC; }
+
+/* Rarity styles */
+.rarity-common { color: #6c757d; }
+.rarity-uncommon { color: #28a745; }
+.rarity-rare { color: #ffb300; } /* Changed from blue to golden yellow */
+.rarity-ultra_rare { color: #dc3545; }
+.rarity-legendary { color: #ffc107; text-shadow: 0 0 3px #000; }
+
+/* Buttons */
+.btn-primary {
+    background-color: #ffb700;
+    border-color: #ffb700;
+}
+
+.btn-primary:hover {
+    background-color: #e0a100;
+    border-color: #e0a100;
+}
+
+/* Collection filters */
+.collection-filters {
+    background-color: #f0f0f0;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+/* Message bubbles */
+.message-bubble {
+    padding: 10px 15px;
+    border-radius: 15px;
+    margin-bottom: 10px;
+    max-width: 75%;
+}
+
+.message-sent {
+    background-color: #fff8dc; /* Light yellow for sent messages */
+    margin-left: auto;
+}
+
+.message-received {
+    background-color: #f1f0f0;
+}
+
+/* Trade cards */
+.trade-card {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.trade-card .trade-header {
+    padding: 10px 15px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.trade-card .trade-body {
+    padding: 15px;
+}
+
+.trade-card .trade-footer {
+    padding: 10px 15px;
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+} 

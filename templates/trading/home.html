@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+
+{% block title %}Trading - PokeTrade{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1 class="mb-0">Pokémon Trading</h1>
+        <p class="lead">Trade with other trainers to grow your collection!</p>
+    </div>
+    <div class="col-md-4 text-end">
+        {% if unread_notifications > 0 %}
+            <a href="{% url 'trading:notifications' %}" class="btn btn-warning position-relative">
+                <i class="fas fa-bell me-2"></i>Notifications
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                    {{ unread_notifications }}
+                    <span class="visually-hidden">unread notifications</span>
+                </span>
+            </a>
+        {% else %}
+            <a href="{% url 'trading:notifications' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-bell me-2"></i>Notifications
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header bg-yellow text-white">
+                <h3 class="mb-0">Your Recent Trades</h3>
+            </div>
+            <div class="card-body">
+                {% if sent_trades %}
+                    <div class="list-group mb-3">
+                        {% for trade in sent_trades %}
+                            <a href="{% url 'trading:view_trade' trade.id %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>To: {{ trade.receiver.username }}</strong>
+                                    <small class="d-block text-muted">{{ trade.created_at|date:"M d, Y" }}</small>
+                                </div>
+                                <span class="badge bg-{% if trade.status == 'pending' %}warning{% elif trade.status == 'accepted' %}success{% elif trade.status == 'rejected' %}danger{% else %}secondary{% endif %}">
+                                    {{ trade.get_status_display }}
+                                </span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">You haven't sent any trade requests yet.</p>
+                {% endif %}
+                
+                <div class="d-grid">
+                    <a href="{% url 'trading:sent_trades' %}" class="btn btn-outline-primary">View All Sent Trades</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header bg-yellow text-white">
+                <h3 class="mb-0">Trades From Others</h3>
+            </div>
+            <div class="card-body">
+                {% if received_trades %}
+                    <div class="list-group mb-3">
+                        {% for trade in received_trades %}
+                            <a href="{% url 'trading:view_trade' trade.id %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>From: {{ trade.sender.username }}</strong>
+                                    <small class="d-block text-muted">{{ trade.created_at|date:"M d, Y" }}</small>
+                                </div>
+                                <span class="badge bg-{% if trade.status == 'pending' %}warning{% elif trade.status == 'accepted' %}success{% elif trade.status == 'rejected' %}danger{% else %}secondary{% endif %}">
+                                    {{ trade.get_status_display }}
+                                </span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">You haven't received any trade requests yet.</p>
+                {% endif %}
+                
+                <div class="d-grid">
+                    <a href="{% url 'trading:received_trades' %}" class="btn btn-outline-primary">View All Received Trades</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header bg-yellow text-white">
+        <h3 class="mb-0">Start a New Trade</h3>
+    </div>
+    <div class="card-body">
+        <p>Select a user to trade with:</p>
+        
+        <div class="row row-cols-1 row-cols-md-3 g-4 mb-4">
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Find a User</h5>
+                        <p class="card-text">Search for a specific user to trade with</p>
+                        <div class="d-grid">
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#findUserModal">
+                                <i class="fas fa-search me-2"></i>Find User
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Browse Collections</h5>
+                        <p class="card-text">Browse other users' collections to find Pokémon you want</p>
+                        <div class="d-grid">
+                            <a href="#" class="btn btn-primary">
+                                <i class="fas fa-th me-2"></i>Browse Collections
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Trade History</h5>
+                        <p class="card-text">View all your completed and pending trades</p>
+                        <div class="d-grid">
+                            <a href="{% url 'trading:sent_trades' %}" class="btn btn-primary">
+                                <i class="fas fa-history me-2"></i>Trade History
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Find User Modal -->
+<div class="modal fade" id="findUserModal" tabindex="-1" aria-labelledby="findUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="findUserModalLabel">Find a User to Trade With</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="find-user-form">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" placeholder="Enter username">
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Find User</button>
+                    </div>
+                </form>
+                
+                <div class="mt-4 d-none" id="user-results">
+                    <h6>Search Results:</h6>
+                    <div class="list-group">
+                        <!-- Results will be dynamically added here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('find-user-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        // In a full implementation, this would make an AJAX call to search for users
+        // For demo purposes, we'll just show a sample result
+        
+        const resultsDiv = document.getElementById('user-results');
+        const listGroup = resultsDiv.querySelector('.list-group');
+        
+        // Clear previous results
+        listGroup.innerHTML = '';
+        
+        // Add sample result
+        const username = document.getElementById('username').value;
+        if (username.trim() !== '') {
+            listGroup.innerHTML = `
+                <a href="/trading/create/${username}/" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>${username}</strong>
+                        <small class="d-block text-muted">Trainer</small>
+                    </div>
+                    <button class="btn btn-sm btn-primary">Trade</button>
+                </a>
+            `;
+            
+            resultsDiv.classList.remove('d-none');
+        }
+    });
+</script>
+{% endblock %} 

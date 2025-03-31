@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Logged Out - PokeTrade{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-yellow text-white">
+                <h3 class="mb-0">You've Been Logged Out</h3>
+            </div>
+            <div class="card-body text-center">
+                <i class="fas fa-sign-out-alt fa-4x mb-3 text-muted"></i>
+                <h4 class="mb-3">Thank you for visiting PokeTrade!</h4>
+                <p>You have successfully logged out of your account.</p>
+                <div class="d-grid mt-4">
+                    <a href="{% url 'login' %}" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt me-2"></i>Log In Again
+                    </a>
+                </div>
+            </div>
+            <div class="card-footer text-center">
+                <p class="mb-0">
+                    <a href="{% url 'home' %}">Return to home page</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}Marketplace - PokeTrade{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1 class="mb-0">Pokémon Marketplace</h1>
+        <p class="lead">Buy and sell Pokémon with other trainers!</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'marketplace:my_listings' %}" class="btn btn-primary">
+            <i class="fas fa-list me-2"></i>My Listings
+        </a>
+        <a href="{% url 'marketplace:saved_listings' %}" class="btn btn-outline-primary">
+            <i class="fas fa-bookmark me-2"></i>Saved
+        </a>
+    </div>
+</div>
+
+<!-- Search and Filters -->
+<div class="card shadow mb-4">
+    <div class="card-header bg-yellow text-white">
+        <h3 class="mb-0">Search & Filters</h3>
+    </div>
+    <div class="card-body">
+        <form id="marketplace-search" action="{% url 'marketplace:search' %}" method="get">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="search-query" name="q" placeholder="Search">
+                        <label for="search-query">Search Pokémon</label>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-floating">
+                        <select class="form-select" id="search-type" name="type">
+                            <option value="">Any Type</option>
+                            {% for type_code, type_name in pokemon_types %}
+                                <option value="{{ type_code }}">{{ type_name }}</option>
+                            {% endfor %}
+                        </select>
+                        <label for="search-type">Type</label>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-floating">
+                        <select class="form-select" id="search-rarity" name="rarity">
+                            <option value="">Any Rarity</option>
+                            {% for rarity_code, rarity_name in pokemon_rarities %}
+                                <option value="{{ rarity_code }}">{{ rarity_name }}</option>
+                            {% endfor %}
+                        </select>
+                        <label for="search-rarity">Rarity</label>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-floating">
+                        <input type="number" class="form-control" id="search-min-price" name="min_price" placeholder="Min Price" min="0">
+                        <label for="search-min-price">Min Price</label>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-floating">
+                        <input type="number" class="form-control" id="search-max-price" name="max_price" placeholder="Max Price" min="0">
+                        <label for="search-max-price">Max Price</label>
+                    </div>
+                </div>
+                <div class="col-12 text-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-2"></i>Search
+                    </button>
+                    <button type="reset" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-2"></i>Clear
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Listings -->
+<div class="card shadow">
+    <div class="card-header bg-yellow text-white">
+        <h3 class="mb-0">Active Listings</h3>
+    </div>
+    <div class="card-body">
+        {% if listings %}
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                {% for listing in listings %}
+                    <div class="col">
+                        <div class="card h-100 pokemon-card">
+                            <div class="position-absolute top-0 end-0 m-2">
+                                <span class="badge bg-warning rounded-pill">{{ listing.price }} coins</span>
+                            </div>
+                            <img src="{{ listing.pokemon.pokemon.image_url }}" class="card-img-top" alt="{{ listing.pokemon.pokemon.name }}">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ listing.pokemon.pokemon.name }}</h5>
+                                <div class="mb-2">
+                                    <span class="badge bg-secondary pokemon-type type-{{ listing.pokemon.pokemon.primary_type }}">
+                                        {{ listing.pokemon.pokemon.primary_type }}
+                                    </span>
+                                    {% if listing.pokemon.pokemon.secondary_type %}
+                                        <span class="badge bg-secondary pokemon-type type-{{ listing.pokemon.pokemon.secondary_type }}">
+                                            {{ listing.pokemon.pokemon.secondary_type }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <p class="card-text">
+                                    <span class="rarity-{{ listing.pokemon.pokemon.rarity }}">
+                                        {{ listing.pokemon.pokemon.get_rarity_display }}
+                                    </span>
+                                </p>
+                                <p class="card-text">
+                                    <small class="text-muted">
+                                        Seller: {{ listing.seller.username }}<br>
+                                        Listed: {{ listing.created_at|date:"M d, Y" }}
+                                    </small>
+                                </p>
+                            </div>
+                            <div class="card-footer">
+                                <div class="d-grid gap-2">
+                                    <a href="{% url 'marketplace:view_listing' listing.id %}" class="btn btn-primary">View Listing</a>
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'marketplace:save_listing' listing.id %}" class="btn btn-outline-secondary">
+                                            <i class="fas fa-bookmark me-1"></i>Save
+                                        </a>
+                                        <a href="{% url 'marketplace:purchase' listing.id %}" class="btn btn-outline-primary">
+                                            <i class="fas fa-shopping-cart me-1"></i>Buy Now
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <h4 class="alert-heading">No listings found!</h4>
+                <p>There are currently no Pokémon listed in the marketplace. Check back later or be the first to sell your Pokémon!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 
