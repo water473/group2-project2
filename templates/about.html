@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block title %}About PokeTrade{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">About</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <!-- Main About Card -->
+        <div class="card shadow mb-4">
+            <div class="card-header bg-yellow text-white">
+                <h2 class="mb-0">
+                    <i class="fas fa-dragon me-2"></i>Welcome to PokeTrade
+                </h2>
+            </div>
+            <div class="card-body">
+                <p class="lead">
+                    PokeTrade is your premier platform for collecting, trading, and managing your Pokémon collection in a vibrant community environment.
+                </p>
+                <p>
+                    Whether you're a seasoned collector or just starting your journey, PokeTrade provides all the tools you need to build and expand your Pokémon collection through trading, buying, and selling with other trainers.
+                </p>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-th fa-3x mb-3 text-primary"></i>
+                        <h4>Collection Management</h4>
+                        <p>Organize and track your Pokémon collection with advanced sorting and filtering options.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-exchange-alt fa-3x mb-3 text-primary"></i>
+                        <h4>Trading System</h4>
+                        <p>Trade Pokémon with other trainers in a secure and user-friendly environment.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-store fa-3x mb-3 text-primary"></i>
+                        <h4>Marketplace</h4>
+                        <p>Buy and sell Pokémon in our integrated marketplace with real-time updates.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- How It Works Section -->
+        <div class="card shadow mb-4">
+            <div class="card-header bg-yellow text-white">
+                <h3 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>How It Works
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Getting Started</h5>
+                        <ol class="list-group list-group-numbered">
+                            <li class="list-group-item">Create your account</li>
+                            <li class="list-group-item">Receive your starter Pokémon</li>
+                            <li class="list-group-item">Build your collection</li>
+                            <li class="list-group-item">Start trading!</li>
+                        </ol>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Features</h5>
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <i class="fas fa-check-circle text-success me-2"></i>Secure trading system
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-check-circle text-success me-2"></i>Real-time notifications
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-check-circle text-success me-2"></i>Advanced search filters
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-check-circle text-success me-2"></i>User messaging system
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Community Section -->
+        <div class="card shadow">
+            <div class="card-header bg-yellow text-white">
+                <h3 class="mb-0">
+                    <i class="fas fa-users me-2"></i>Join Our Community
+                </h3>
+            </div>
+            <div class="card-body">
+                <p>
+                    PokeTrade is more than just a trading platform - it's a community of Pokémon enthusiasts. Connect with other trainers, share your collection, and make new friends along the way.
+                </p>
+                <div class="d-grid gap-2">
+                    {% if not user.is_authenticated %}
+                        <a href="{% url 'accounts:register' %}" class="btn btn-primary">
+                            <i class="fas fa-user-plus me-2"></i>Create an Account
+                        </a>
+                    {% else %}
+                        <a href="{% url 'pokemon:collection' %}" class="btn btn-primary">
+                            <i class="fas fa-th me-2"></i>View Your Collection
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
