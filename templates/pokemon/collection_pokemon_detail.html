@@ -1,112 +1,119 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ user_pokemon.pokemon.name }} - PokeTrade{% endblock %}
+{% block title %}{{ user_pokemon.card.name }} - PokeTrade{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-4">
-        <div class="card shadow mb-4">
-            <div class="card-body text-center">
-                <h2 class="card-title">
-                    {{ user_pokemon.pokemon.name }}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <img src="{{ user_pokemon.card.large_image_url|default:user_pokemon.card.image_url }}" class="card-img-top" alt="{{ user_pokemon.card.name }}">
+                <div class="card-body">
+                    <h2 class="card-title">{{ user_pokemon.card.name }}</h2>
                     {% if user_pokemon.nickname %}
-                        <small class="d-block text-muted">"{{ user_pokemon.nickname }}"</small>
+                        <p class="text-muted">Nickname: "{{ user_pokemon.nickname }}"</p>
                     {% endif %}
-                </h2>
-                
-                <div class="my-3">
-                    <span class="badge bg-secondary pokemon-type type-{{ user_pokemon.pokemon.primary_type }}">
-                        {{ user_pokemon.pokemon.primary_type }}
-                    </span>
-                    {% if user_pokemon.pokemon.secondary_type %}
-                        <span class="badge bg-secondary pokemon-type type-{{ user_pokemon.pokemon.secondary_type }}">
-                            {{ user_pokemon.pokemon.secondary_type }}
-                        </span>
-                    {% endif %}
-                </div>
-                
-                <div class="mb-4">
-                    <img src="{{ user_pokemon.pokemon.image_url }}" alt="{{ user_pokemon.pokemon.name }}" class="img-fluid rounded">
-                </div>
-                
-                <p class="card-text">
-                    <span class="rarity-{{ user_pokemon.pokemon.rarity }}">
-                        <strong>Rarity:</strong> {{ user_pokemon.pokemon.get_rarity_display }}
-                    </span>
-                </p>
-                
-                <div class="d-grid gap-2">
-                    <a href="{% url 'pokemon:edit_collection_pokemon' user_pokemon.id %}" class="btn btn-primary">
-                        <i class="fas fa-edit me-2"></i>Edit Pokémon
-                    </a>
-                    <a href="{% url 'marketplace:create_listing' user_pokemon.id %}" class="btn btn-outline-primary">
-                        <i class="fas fa-tag me-2"></i>Sell in Marketplace
-                    </a>
-                    <a href="{% url 'pokemon:collection' %}" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left me-2"></i>Back to Collection
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-8">
-        <div class="card shadow mb-4">
-            <div class="card-header bg-yellow text-white">
-                <h3 class="mb-0">Pokémon Details</h3>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <dl class="row">
-                            <dt class="col-sm-5">Base Value:</dt>
-                            <dd class="col-sm-7">{{ user_pokemon.pokemon.base_value }} coins</dd>
-                            
-                            <dt class="col-sm-5">Height:</dt>
-                            <dd class="col-sm-7">{{ user_pokemon.pokemon.height }} m</dd>
-                            
-                            <dt class="col-sm-5">Weight:</dt>
-                            <dd class="col-sm-7">{{ user_pokemon.pokemon.weight }} kg</dd>
-                            
-                            <dt class="col-sm-5">Acquired:</dt>
-                            <dd class="col-sm-7">{{ user_pokemon.acquired_date|date:"F j, Y" }}</dd>
-                        </dl>
+                    
+                    <div class="mb-3">
+                        {% if user_pokemon.card.types %}
+                            {% for type in user_pokemon.card.types %}
+                                <span class="badge bg-primary me-1">{{ type }}</span>
+                            {% endfor %}
+                        {% endif %}
+                        <span class="badge bg-secondary">{{ user_pokemon.card.rarity }}</span>
                     </div>
-                    <div class="col-md-6">
-                        <dl class="row">
-                            <dt class="col-sm-5">Favorite:</dt>
-                            <dd class="col-sm-7">
-                                {% if user_pokemon.favorite %}
-                                    <span class="text-warning"><i class="fas fa-star"></i> Yes</span>
-                                {% else %}
-                                    <span class="text-muted">No</span>
-                                {% endif %}
-                            </dd>
-                            
-                            <dt class="col-sm-5">Pokémon ID:</dt>
-                            <dd class="col-sm-7">#{{ user_pokemon.pokemon.pokemon_id }}</dd>
-                        </dl>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'pokemon:edit_collection_pokemon' collection_id=user_pokemon.id %}" class="btn btn-primary">Edit Pokémon</a>
+                        {% if not user_pokemon.is_for_sale %}
+                            <a href="{% url 'marketplace:create_listing' collection_id=user_pokemon.id %}" class="btn btn-success">Sell in Marketplace</a>
+                        {% else %}
+                            <div class="alert alert-info">
+                                This Pokémon is currently listed for sale at {{ user_pokemon.price }} points.
+                                <a href="{% url 'marketplace:edit_listing' collection_id=user_pokemon.id %}" class="alert-link">Edit listing</a>
+                            </div>
+                        {% endif %}
+                        <a href="{% url 'pokemon:collection' %}" class="btn btn-outline-secondary">Back to Collection</a>
                     </div>
-                </div>
-                
-                <div class="mt-3">
-                    <h5>Description</h5>
-                    <p>{{ user_pokemon.pokemon.description|default:"No description available." }}</p>
                 </div>
             </div>
         </div>
         
-        <div class="card shadow">
-            <div class="card-header bg-yellow text-white">
-                <h3 class="mb-0">Trading Options</h3>
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">Card Details</h3>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">Set</dt>
+                        <dd class="col-sm-8">{{ user_pokemon.card.set_name }}</dd>
+                        
+                        <dt class="col-sm-4">Base Value</dt>
+                        <dd class="col-sm-8">{{ user_pokemon.card.base_value }} points</dd>
+                        
+                        {% if user_pokemon.card.hp %}
+                            <dt class="col-sm-4">HP</dt>
+                            <dd class="col-sm-8">{{ user_pokemon.card.hp }}</dd>
+                        {% endif %}
+                        
+                        {% if user_pokemon.card.weaknesses %}
+                            <dt class="col-sm-4">Weaknesses</dt>
+                            <dd class="col-sm-8">
+                                {% for weakness in user_pokemon.card.weaknesses %}
+                                    {{ weakness.type }} ({{ weakness.value }})<br>
+                                {% endfor %}
+                            </dd>
+                        {% endif %}
+                        
+                        {% if user_pokemon.card.resistances %}
+                            <dt class="col-sm-4">Resistances</dt>
+                            <dd class="col-sm-8">
+                                {% for resistance in user_pokemon.card.resistances %}
+                                    {{ resistance.type }} ({{ resistance.value }})<br>
+                                {% endfor %}
+                            </dd>
+                        {% endif %}
+                        
+                        {% if user_pokemon.card.retreat_cost %}
+                            <dt class="col-sm-4">Retreat Cost</dt>
+                            <dd class="col-sm-8">
+                                {% for cost in user_pokemon.card.retreat_cost %}
+                                    <span class="badge bg-secondary">{{ cost }}</span>
+                                {% endfor %}
+                            </dd>
+                        {% endif %}
+                        
+                        <dt class="col-sm-4">Acquired</dt>
+                        <dd class="col-sm-8">{{ user_pokemon.acquired_date|date:"F j, Y" }}</dd>
+                    </dl>
+                </div>
             </div>
-            <div class="card-body">
-                <h5>Users Looking for This Pokémon</h5>
-                <p class="text-muted">This feature is coming soon! Check back later to see who's interested in trading for your {{ user_pokemon.pokemon.name }}.</p>
-                
-                <h5 class="mt-4">Trade History</h5>
-                <p class="text-muted">No previous trades found for this Pokémon.</p>
-            </div>
+            
+            {% if user_pokemon.description %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3 class="card-title mb-0">Description</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>{{ user_pokemon.description }}</p>
+                    </div>
+                </div>
+            {% endif %}
+            
+            {% if user_pokemon.card.flavor_text %}
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title mb-0">Card Text</h3>
+                    </div>
+                    <div class="card-body">
+                        <p class="fst-italic">{{ user_pokemon.card.flavor_text }}</p>
+                        {% if user_pokemon.card.artist %}
+                            <p class="text-muted">Artist: {{ user_pokemon.card.artist }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>

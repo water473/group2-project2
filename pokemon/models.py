@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 class Pokemon(models.Model):
     # Basic Pokemon information
@@ -72,3 +73,58 @@ class UserCollection(models.Model):
         # (This can be removed if users can have multiple of the same Pokemon)
         unique_together = ['user', 'pokemon']
         ordering = ['-acquired_date']
+
+class PokemonCard(models.Model):
+    """Model for storing Pokémon card data from the TCG API"""
+    card_id = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100)
+    set_name = models.CharField(max_length=100)
+    set_code = models.CharField(max_length=20)
+    rarity = models.CharField(max_length=50, blank=True)
+    image_url = models.URLField()
+    small_image_url = models.URLField(blank=True)
+    large_image_url = models.URLField(blank=True)
+    card_market_url = models.URLField(blank=True)
+    tcgplayer_url = models.URLField(blank=True)
+    cardmarket_url = models.URLField(blank=True)
+    cardmarket_prices = models.JSONField(null=True, blank=True)
+    tcgplayer_prices = models.JSONField(null=True, blank=True)
+    types = models.JSONField(null=True, blank=True)  # Store as JSON array
+    weaknesses = models.JSONField(null=True, blank=True)  # Store as JSON array
+    resistances = models.JSONField(null=True, blank=True)  # Store as JSON array
+    retreat_cost = models.JSONField(null=True, blank=True)  # Store as JSON array
+    converted_retreat_cost = models.IntegerField(null=True, blank=True)
+    hp = models.CharField(max_length=10, blank=True)
+    artist = models.CharField(max_length=100, blank=True)
+    flavor_text = models.TextField(blank=True)
+    national_pokedex_numbers = models.JSONField(null=True, blank=True)  # Store as JSON array
+    legalities = models.JSONField(null=True, blank=True)  # Store as JSON object
+    regulation_mark = models.CharField(max_length=10, blank=True)
+    base_value = models.IntegerField(default=10)  # Default value for trading
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.set_name})"
+
+    class Meta:
+        ordering = ['name', 'set_name']
+
+class UserPokemon(models.Model):
+    """Model for storing user's Pokémon card collection"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pokemon')
+    card = models.ForeignKey(PokemonCard, on_delete=models.CASCADE)
+    nickname = models.CharField(max_length=50, blank=True)
+    description = models.TextField(blank=True)
+    is_for_sale = models.BooleanField(default=False)
+    price = models.IntegerField(null=True, blank=True)
+    acquired_date = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.username}'s {self.card.name}"
+
+    class Meta:
+        ordering = ['-acquired_date']
+        unique_together = ['user', 'card']  # Prevent duplicates in collection

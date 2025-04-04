@@ -3,104 +3,134 @@
 {% block title %}My Collection - PokeTrade{% endblock %}
 
 {% block content %}
-<h1 class="mb-4">My Pokémon Collection</h1>
-
-<!-- Filters and Sorting -->
-<div class="collection-filters mb-4">
-    <div class="row">
-        <div class="col-md-3">
-            <label for="type-filter" class="form-label">Filter by Type</label>
-            <select id="type-filter" class="form-select collection-filter" data-filter-type="type">
-                <option value="">All Types</option>
-                {% for type_code, type_name in pokemon_types %}
-                    <option value="{{ type_code }}" {% if current_filter_by == 'type' and current_filter_value == type_code %}selected{% endif %}>
-                        {{ type_name }}
-                    </option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="col-md-3">
-            <label for="rarity-filter" class="form-label">Filter by Rarity</label>
-            <select id="rarity-filter" class="form-select collection-filter" data-filter-type="rarity">
-                <option value="">All Rarities</option>
-                {% for rarity_code, rarity_name in pokemon_rarities %}
-                    <option value="{{ rarity_code }}" {% if current_filter_by == 'rarity' and current_filter_value == rarity_code %}selected{% endif %}>
-                        {{ rarity_name }}
-                    </option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="col-md-3">
-            <label for="collection-sort" class="form-label">Sort By</label>
-            <select id="collection-sort" class="form-select">
-                <option value="date" {% if current_sort == 'date' %}selected{% endif %}>Date Acquired</option>
-                <option value="name" {% if current_sort == 'name' %}selected{% endif %}>Name</option>
-                <option value="rarity" {% if current_sort == 'rarity' %}selected{% endif %}>Rarity</option>
-            </select>
-        </div>
-        <div class="col-md-3 d-flex align-items-end">
-            <a href="{% url 'pokemon:collection' %}" class="btn btn-outline-secondary w-100">Clear Filters</a>
-        </div>
-    </div>
-</div>
-
-<!-- Pokémon Cards -->
-<div class="row">
-    {% if collection %}
-        {% for user_pokemon in collection %}
-            <div class="col-lg-3 col-md-4 col-6 mb-4">
-                <div class="card h-100 pokemon-card">
-                    <div class="position-absolute top-0 end-0 m-2">
-                        {% if user_pokemon.favorite %}
-                            <span class="badge bg-warning"><i class="fas fa-star"></i> Favorite</span>
-                        {% endif %}
-                    </div>
-                    <img src="{{ user_pokemon.pokemon.image_url }}" class="card-img-top" alt="{{ user_pokemon.pokemon.name }}">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            {{ user_pokemon.pokemon.name }}
-                            {% if user_pokemon.nickname %}
-                                <small class="text-muted">"{{ user_pokemon.nickname }}"</small>
-                            {% endif %}
-                        </h5>
-                        <div class="mb-2">
-                            <span class="badge bg-secondary pokemon-type type-{{ user_pokemon.pokemon.primary_type }}">
-                                {{ user_pokemon.pokemon.primary_type }}
-                            </span>
-                            {% if user_pokemon.pokemon.secondary_type %}
-                                <span class="badge bg-secondary pokemon-type type-{{ user_pokemon.pokemon.secondary_type }}">
-                                    {{ user_pokemon.pokemon.secondary_type }}
-                                </span>
+<div class="container mt-4">
+    <h1 class="mb-4">My Pokémon Collection</h1>
+    
+    <!-- Filters and Sorting -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Filters</h5>
+                    <form method="get" class="row g-3">
+                        <div class="col-md-6">
+                            <label for="filter_by" class="form-label">Filter By</label>
+                            <select class="form-select" id="filter_by" name="filter_by">
+                                <option value="">None</option>
+                                <option value="type" {% if current_filter_by == 'type' %}selected{% endif %}>Type</option>
+                                <option value="rarity" {% if current_filter_by == 'rarity' %}selected{% endif %}>Rarity</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="filter_value" class="form-label">Value</label>
+                            <select class="form-select" id="filter_value" name="filter_value">
+                                <option value="">Select...</option>
+                                {% if current_filter_by == 'type' %}
+                                    {% for type in pokemon_types %}
+                                        <option value="{{ type }}" {% if current_filter_value == type %}selected{% endif %}>{{ type }}</option>
+                                    {% endfor %}
+                                {% elif current_filter_by == 'rarity' %}
+                                    {% for rarity in pokemon_rarities %}
+                                        <option value="{{ rarity }}" {% if current_filter_value == rarity %}selected{% endif %}>{{ rarity }}</option>
+                                    {% endfor %}
+                                {% endif %}
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary">Apply Filter</button>
+                            {% if current_filter_by or current_filter_value %}
+                                <a href="{% url 'pokemon:collection' %}" class="btn btn-secondary">Clear Filters</a>
                             {% endif %}
                         </div>
-                        <p class="card-text">
-                            <span class="rarity-{{ user_pokemon.pokemon.rarity }}">
-                                {{ user_pokemon.pokemon.get_rarity_display }}
-                            </span>
-                        </p>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Sort By</h5>
+                    <div class="btn-group" role="group">
+                        <a href="{% url 'pokemon:collection' %}?sort_by=name" class="btn btn-outline-primary {% if current_sort == 'name' %}active{% endif %}">Name</a>
+                        <a href="{% url 'pokemon:collection' %}?sort_by=date" class="btn btn-outline-primary {% if current_sort == 'date' %}active{% endif %}">Date Acquired</a>
+                        <a href="{% url 'pokemon:collection' %}?sort_by=rarity" class="btn btn-outline-primary {% if current_sort == 'rarity' %}active{% endif %}">Rarity</a>
                     </div>
-                    <div class="card-footer">
-                        <div class="d-grid gap-2">
-                            <a href="{% url 'pokemon:collection_pokemon_detail' user_pokemon.id %}" class="btn btn-primary btn-sm">View Details</a>
-                            <div class="btn-group">
-                                <a href="{% url 'marketplace:create_listing' user_pokemon.id %}" class="btn btn-outline-primary btn-sm">Sell</a>
-                                <a href="{% url 'pokemon:edit_collection_pokemon' user_pokemon.id %}" class="btn btn-outline-secondary btn-sm">Edit</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Collection Display -->
+    <div class="row">
+        {% if collection %}
+            {% for user_pokemon in collection %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <img src="{{ user_pokemon.card.image_url }}" class="card-img-top" alt="{{ user_pokemon.card.name }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ user_pokemon.card.name }}</h5>
+                            {% if user_pokemon.nickname %}
+                                <p class="card-text"><small class="text-muted">Nickname: {{ user_pokemon.nickname }}</small></p>
+                            {% endif %}
+                            <p class="card-text">
+                                {% if user_pokemon.card.types %}
+                                    {% for type in user_pokemon.card.types %}
+                                        <span class="badge bg-primary me-1">{{ type }}</span>
+                                    {% endfor %}
+                                {% endif %}
+                                <span class="badge bg-secondary">{{ user_pokemon.card.rarity }}</span>
+                            </p>
+                            <div class="d-flex justify-content-between">
+                                <a href="{% url 'pokemon:collection_pokemon_detail' collection_id=user_pokemon.id %}" class="btn btn-primary">View Details</a>
+                                {% if user_pokemon.is_for_sale %}
+                                    <span class="badge bg-success align-self-center">For Sale: {{ user_pokemon.price }}</span>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
                 </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <h4 class="alert-heading">No Pokémon Found</h4>
+                    <p>You don't have any Pokémon in your collection yet.</p>
+                    {% if current_filter_by or current_filter_value %}
+                        <hr>
+                        <p class="mb-0">Try <a href="{% url 'pokemon:collection' %}" class="alert-link">clearing your filters</a> to see all your Pokémon.</p>
+                    {% endif %}
+                </div>
             </div>
-        {% endfor %}
-    {% else %}
-        <div class="col-12">
-            <div class="alert alert-warning">
-                <h4 class="alert-heading">No Pokémon Found!</h4>
-                <p>You don't have any Pokémon in your collection yet, or none match your current filters.</p>
-                {% if current_filter_by %}
-                    <a href="{% url 'pokemon:collection' %}" class="btn btn-primary">Clear Filters</a>
-                {% endif %}
-            </div>
-        </div>
-    {% endif %}
+        {% endif %}
+    </div>
 </div>
+
+{% block extra_js %}
+<script>
+    // Update filter value options based on selected filter type
+    document.getElementById('filter_by').addEventListener('change', function() {
+        const filterValueSelect = document.getElementById('filter_value');
+        const filterType = this.value;
+        
+        // Clear current options
+        filterValueSelect.innerHTML = '<option value="">Select...</option>';
+        
+        if (filterType === 'type') {
+            {% for type in pokemon_types %}
+                const option = document.createElement('option');
+                option.value = "{{ type }}";
+                option.textContent = "{{ type }}";
+                filterValueSelect.appendChild(option);
+            {% endfor %}
+        } else if (filterType === 'rarity') {
+            {% for rarity in pokemon_rarities %}
+                const option = document.createElement('option');
+                option.value = "{{ rarity }}";
+                option.textContent = "{{ rarity }}";
+                filterValueSelect.appendChild(option);
+            {% endfor %}
+        }
+    });
+</script>
+{% endblock %}
 {% endblock %} 
