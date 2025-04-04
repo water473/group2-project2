@@ -1,0 +1,4 @@
+test
+python manage.py runserver
+user: group2
+password: acbd1324
