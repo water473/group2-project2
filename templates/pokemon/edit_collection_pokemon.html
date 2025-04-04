@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit {{ user_pokemon.card.name }} - PokeTrade{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <img src="{{ user_pokemon.card.image_url }}" class="card-img-top" alt="{{ user_pokemon.card.name }}">
+                <div class="card-body">
+                    <h2 class="card-title">{{ user_pokemon.card.name }}</h2>
+                    <p class="card-text">
+                        {% if user_pokemon.card.types %}
+                            {% for type in user_pokemon.card.types %}
+                                <span class="badge bg-primary me-1">{{ type }}</span>
+                            {% endfor %}
+                        {% endif %}
+                        <span class="badge bg-secondary">{{ user_pokemon.card.rarity }}</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">Edit Pokémon</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="nickname" class="form-label">Nickname (Optional)</label>
+                            <input type="text" class="form-control" id="nickname" name="nickname" value="{{ user_pokemon.nickname }}" placeholder="Give your Pokémon a nickname">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description (Optional)</label>
+                            <textarea class="form-control" id="description" name="description" rows="3" placeholder="Add a description for your Pokémon">{{ user_pokemon.description }}</textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="is_for_sale" name="is_for_sale" {% if user_pokemon.is_for_sale %}checked{% endif %}>
+                                <label class="form-check-label" for="is_for_sale">
+                                    List for Sale
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3" id="price_field" {% if not user_pokemon.is_for_sale %}style="display: none;"{% endif %}>
+                            <label for="price" class="form-label">Price (in points)</label>
+                            <input type="number" class="form-control" id="price" name="price" value="{{ user_pokemon.price|default:user_pokemon.card.base_value }}" min="{{ user_pokemon.card.base_value }}">
+                            <div class="form-text">Minimum price: {{ user_pokemon.card.base_value }} points</div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                            <a href="{% url 'pokemon:collection_pokemon_detail' collection_id=user_pokemon.id %}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Show/hide price field based on "List for Sale" checkbox
+    document.getElementById('is_for_sale').addEventListener('change', function() {
+        const priceField = document.getElementById('price_field');
+        if (this.checked) {
+            priceField.style.display = 'block';
+        } else {
+            priceField.style.display = 'none';
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %} 
