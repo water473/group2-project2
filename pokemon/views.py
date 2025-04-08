@@ -6,47 +6,42 @@ from .models import PokemonCard, UserPokemon
 # Create your views here.
 
 @login_required
-def collection(request, sort_by=None, filter_by=None, filter_value=None):
+def collection(request):
     """View the user's Pokemon collection."""
+    # Get filter and sort parameters
+    filter_type = request.GET.get('filter_type')
+    filter_value = request.GET.get('filter_value')
+    sort = request.GET.get('sort', 'name')  # Default sort by name
+    
     # Get the user's collection
-    collection = UserPokemon.objects.filter(user=request.user)
+    user_pokemon = UserPokemon.objects.filter(user=request.user)
     
     # Apply filters if provided
-    if filter_by and filter_value:
-        if filter_by == 'type':
-            # Filter by types stored in JSON field
-            collection = collection.filter(card__types__contains=[filter_value])
-        elif filter_by == 'rarity':
-            collection = collection.filter(card__rarity=filter_value)
+    if filter_type and filter_value:
+        if filter_type == 'type':
+            user_pokemon = user_pokemon.filter(card__types__name=filter_value)
+        elif filter_type == 'rarity':
+            user_pokemon = user_pokemon.filter(card__rarity=filter_value)
     
-    # Apply sorting if provided
-    if sort_by:
-        if sort_by == 'name':
-            collection = collection.order_by('card__name')
-        elif sort_by == 'date':
-            collection = collection.order_by('-acquired_date')
-        elif sort_by == 'rarity':
-            collection = collection.order_by('card__rarity')
+    # Apply sorting
+    if sort == 'name':
+        user_pokemon = user_pokemon.order_by('card__name')
+    elif sort == 'date':
+        user_pokemon = user_pokemon.order_by('-acquired_date')
+    elif sort == 'rarity':
+        user_pokemon = user_pokemon.order_by('card__rarity')
     
     # Get all Pokemon types and rarities for the filter dropdowns
-    # We'll need to extract these from the cards in the database
-    all_cards = PokemonCard.objects.all()
-    pokemon_types = set()
-    pokemon_rarities = set()
-    
-    for card in all_cards:
-        if card.types:
-            pokemon_types.update(card.types)
-        if card.rarity:
-            pokemon_rarities.add(card.rarity)
+    pokemon_types = set(PokemonCard.objects.values_list('types__name', flat=True).distinct())
+    pokemon_rarities = set(PokemonCard.objects.values_list('rarity', flat=True).distinct())
     
     context = {
-        'collection': collection,
+        'user_pokemon': user_pokemon,
         'pokemon_types': sorted(list(pokemon_types)),
         'pokemon_rarities': sorted(list(pokemon_rarities)),
-        'current_sort': sort_by,
-        'current_filter_by': filter_by,
-        'current_filter_value': filter_value,
+        'filter_type': filter_type,
+        'filter_value': filter_value,
+        'sort': sort,
     }
     
     return render(request, 'pokemon/collection.html', context)
