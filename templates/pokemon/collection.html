@@ -104,6 +104,13 @@
     {% endif %}
 </div>
 
+<!-- Hidden data for JavaScript -->
+<div id="pokemon-data" 
+     data-types="{% for type in pokemon_types %}{{ type }}{% if not forloop.last %},{% endif %}{% endfor %}"
+     data-rarities="{% for rarity in pokemon_rarities %}{{ rarity }}{% if not forloop.last %},{% endif %}{% endfor %}"
+     style="display: none;">
+</div>
+
 <style>
 .pokemon-card {
     transition: transform 0.2s;
@@ -165,14 +172,23 @@ document.getElementById('filter_type').addEventListener('change', function() {
     const filterValue = document.getElementById('filter_value');
     filterValue.innerHTML = '<option value="">Select Value...</option>';
     
+    // Get data from the hidden div
+    const pokemonData = document.getElementById('pokemon-data');
+    const types = pokemonData.getAttribute('data-types').split(',');
+    const rarities = pokemonData.getAttribute('data-rarities').split(',');
+    
     if (this.value === 'type') {
-        {% for type in pokemon_types %}
-            filterValue.innerHTML += `<option value="{{ type }}">{{ type }}</option>`;
-        {% endfor %}
+        types.forEach(type => {
+            if (type) {  // Skip empty values
+                filterValue.innerHTML += `<option value="${type}">${type}</option>`;
+            }
+        });
     } else if (this.value === 'rarity') {
-        {% for rarity in pokemon_rarities %}
-            filterValue.innerHTML += `<option value="{{ rarity }}">{{ rarity }}</option>`;
-        {% endfor %}
+        rarities.forEach(rarity => {
+            if (rarity) {  // Skip empty values
+                filterValue.innerHTML += `<option value="${rarity}">${rarity}</option>`;
+            }
+        });
     }
 });
 </script>
