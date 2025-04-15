@@ -43,8 +43,16 @@ def create_user_pokemon_collection(sender, instance, created, **kwargs):
             )
             logger.info(f"Found {len(uncommon_cards)} uncommon cards")
             
+            # Get one double rare card
+            logger.info("Fetching double rare card...")
+            rare_cards = service.get_random_cards(
+                count=1,
+                q="rarity:Rare"
+            )
+            logger.info(f"Found {len(rare_cards)} double rare card")
+            
             # Combine the cards
-            random_cards = common_cards + uncommon_cards
+            random_cards = common_cards + uncommon_cards + rare_cards
             logger.info(f"Total cards to assign: {len(random_cards)}")
             
             # Add each card to the user's collection
