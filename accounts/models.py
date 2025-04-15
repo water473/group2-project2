@@ -12,6 +12,22 @@ class Profile(models.Model):
     join_date = models.DateTimeField(auto_now_add=True)
     coins = models.IntegerField(default=1000)  # Initial coins for new users
     
+    @property
+    def pokemon_count(self):
+        """Return the number of Pokémon cards owned by the user."""
+        return self.user.pokemon.count()
+    
+    @property
+    def trade_count(self):
+        """Return the number of completed trades by the user."""
+        # This will need to be updated when the Trade model is implemented
+        return 0
+    
+    @property
+    def market_listings(self):
+        """Return the number of active market listings by the user."""
+        return self.user.pokemon.filter(is_for_sale=True).count()
+    
     def __str__(self):
         return self.user.username
 
