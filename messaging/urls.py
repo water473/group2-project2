@@ -5,8 +5,10 @@ app_name = 'messaging'
 
 urlpatterns = [
     path('', views.inbox, name='inbox'),
-    path('conversation/<int:conversation_id>/', views.conversation, name='conversation'),
-    path('new/<str:username>/', views.new_conversation, name='new_conversation'),
-    path('send/<int:conversation_id>/', views.send_message, name='send_message'),
+    path('message/<int:message_id>/', views.view_message, name='view_message'),
+    path('new/', views.new_message, name='new_message'),
+    path('new/<str:username>/', views.new_message, name='new_message_to_user'),
     path('mark-read/<int:message_id>/', views.mark_message_read, name='mark_message_read'),
+    path('archive/<int:message_id>/', views.archive_message, name='archive_message'),
+    path('delete/<int:message_id>/', views.delete_message, name='delete_message'),
 ] 

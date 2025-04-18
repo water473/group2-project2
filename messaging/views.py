@@ -2,25 +2,46 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.db.models import Q
 from .models import Conversation, Message
 
 @login_required
 def inbox(request):
-    """User's message inbox showing all conversations."""
-    # Get all conversations the user is participating in
-    conversations = Conversation.objects.filter(participants=request.user)
+    """View the user's inbox."""
+    # Get unread count for the inbox
+    unread_count = Message.objects.filter(recipient=request.user, is_read=False).count()
     
-    # Calculate unread message counts for each conversation
-    for conversation in conversations:
-        conversation.unread_count = Message.objects.filter(
-            conversation=conversation,
-            sender__in=conversation.participants.exclude(id=request.user.id),
-            is_read=False
-        ).count()
+    # Get messages for the current folder
+    folder = request.GET.get('folder', 'inbox')
+    if folder == 'inbox':
+        message_list = Message.objects.filter(recipient=request.user)
+    elif folder == 'sent':
+        message_list = Message.objects.filter(sender=request.user)
+    elif folder == 'archived':
+        message_list = Message.objects.filter(
+            Q(sender=request.user) | Q(recipient=request.user),
+            is_archived=True
+        )
+    else:
+        message_list = Message.objects.none()
+    
+    # Paginate messages
+    paginator = Paginator(message_list, 10)
+    page_number = request.GET.get('page')
+    messages_list = paginator.get_page(page_number)
+    
+    # Get recent contacts for the sidebar
+    recent_contacts = User.objects.filter(
+        Q(sent_messages__recipient=request.user) |
+        Q(received_messages__sender=request.user)
+    ).distinct().order_by('-sent_messages__created_at')[:5]
     
     context = {
-        'conversations': conversations,
+        'folder': folder,
+        'messages_list': messages_list,
+        'unread_count': unread_count,
+        'recent_contacts': recent_contacts,
     }
     
     return render(request, 'messaging/inbox.html', context)
@@ -114,16 +135,107 @@ def send_message(request, conversation_id):
     return redirect('messaging:conversation', conversation_id=conversation.id)
 
 @login_required
-def mark_message_read(request, message_id):
-    """Mark a specific message as read."""
+def view_message(request, message_id):
+    """View a specific message."""
     message = get_object_or_404(
         Message,
-        id=message_id,
-        conversation__participants=request.user
+        Q(sender=request.user) | Q(recipient=request.user),
+        id=message_id
     )
     
-    if message.sender != request.user:
+    # Mark as read if the current user is the recipient
+    if message.recipient == request.user and not message.is_read:
         message.is_read = True
         message.save()
     
-    return redirect('messaging:conversation', conversation_id=message.conversation.id)
+    # Get message thread if it exists
+    message_thread = Message.objects.filter(
+        Q(sender=message.sender, recipient=message.recipient) |
+        Q(sender=message.recipient, recipient=message.sender)
+    ).exclude(id=message.id).order_by('created_at')
+    
+    context = {
+        'message': message,
+        'message_thread': message_thread,
+        'message_folder': 'inbox' if message.recipient == request.user else 'sent',
+    }
+    
+    return render(request, 'messaging/message_detail.html', context)
+
+@login_required
+def new_message(request, username=None):
+    """Create a new message."""
+    if request.method == 'POST':
+        recipient_username = request.POST.get('recipient', username)
+        recipient = get_object_or_404(User, username=recipient_username)
+        
+        # Don't allow messaging yourself
+        if recipient == request.user:
+            messages.error(request, "You can't message yourself!")
+            return redirect('messaging:inbox')
+        
+        # Create the message
+        Message.objects.create(
+            sender=request.user,
+            recipient=recipient,
+            subject=request.POST.get('subject', ''),
+            content=request.POST.get('content', ''),
+        )
+        
+        messages.success(request, 'Message sent successfully!')
+        return redirect('messaging:inbox')
+    
+    # If username is provided, pre-fill the recipient
+    recipient = None
+    if username:
+        recipient = get_object_or_404(User, username=username)
+    
+    context = {
+        'recipient': recipient,
+    }
+    
+    return render(request, 'messaging/new_message.html', context)
+
+@login_required
+def mark_message_read(request, message_id):
+    """Mark a message as read."""
+    message = get_object_or_404(
+        Message,
+        recipient=request.user,
+        id=message_id
+    )
+    
+    if not message.is_read:
+        message.is_read = True
+        message.save()
+    
+    return redirect('messaging:view_message', message_id=message_id)
+
+@login_required
+def archive_message(request, message_id):
+    """Archive a message."""
+    message = get_object_or_404(
+        Message,
+        Q(sender=request.user) | Q(recipient=request.user),
+        id=message_id
+    )
+    
+    message.is_archived = True
+    message.save()
+    
+    messages.success(request, 'Message archived successfully!')
+    return redirect('messaging:inbox')
+
+@login_required
+def delete_message(request, message_id):
+    """Delete a message."""
+    message = get_object_or_404(
+        Message,
+        Q(sender=request.user) | Q(recipient=request.user),
+        id=message_id
+    )
+    
+    message.delete()
+    
+    messages.success(request, 'Message deleted successfully!')
+    return redirect('messaging:inbox')

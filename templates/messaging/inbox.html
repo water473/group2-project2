@@ -9,10 +9,9 @@
         <p class="lead">Communicate with other trainers</p>
     </div>
     <div class="col-md-4 text-end">
-        <!-- Disabled until messaging:new_message URL is implemented -->
-        <button class="btn btn-primary" disabled>
+        <a href="{% url 'messaging:new_message' %}" class="btn btn-primary">
             <i class="fas fa-pen me-2"></i>New Message
-        </button>
+        </a>
     </div>
 </div>
 

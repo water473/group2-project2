@@ -13,10 +13,7 @@ class ConversationAdmin(admin.ModelAdmin):
 
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):
-    list_display = ('conversation', 'sender', 'timestamp', 'is_read', 'short_content')
-    list_filter = ('is_read', 'timestamp')
-    search_fields = ('sender__username', 'content')
-    
-    def short_content(self, obj):
-        return obj.content[:50] + '...' if len(obj.content) > 50 else obj.content
-    short_content.short_description = 'Content'
+    list_display = ('sender', 'recipient', 'subject', 'created_at', 'is_read', 'is_archived')
+    list_filter = ('is_read', 'is_archived', 'created_at')
+    search_fields = ('subject', 'content', 'sender__username', 'recipient__username')
+    readonly_fields = ('created_at',)
