@@ -46,7 +46,11 @@
                         <a href="{% url 'messaging:new_message_to_user' contact.username %}" class="list-group-item list-group-item-action">
                             <div class="d-flex align-items-center">
                                 <div class="flex-shrink-0">
-                                    <img src="{{ contact.profile.avatar_url|default:'https://via.placeholder.com/40' }}" class="rounded-circle" width="40" height="40" alt="{{ contact.username }}">
+                                    {% if contact.profile.profile_picture %}
+                                        <img src="{{ contact.profile.profile_picture.url }}" class="rounded-circle" width="40" height="40" alt="{{ contact.username }}">
+                                    {% else %}
+                                        <img src="https://via.placeholder.com/40" class="rounded-circle" width="40" height="40" alt="{{ contact.username }}">
+                                    {% endif %}
                                 </div>
                                 <div class="flex-grow-1 ms-3">
                                     <strong>{{ contact.username }}</strong>
@@ -103,12 +107,24 @@
                                     <div>
                                         {% if folder == 'inbox' %}
                                             <div class="d-flex align-items-center">
-                                                <img src="{{ message.sender.profile.avatar_url|default:'https://via.placeholder.com/32' }}" class="rounded-circle me-2" width="32" height="32" alt="{{ message.sender.username }}">
+                                                <div class="flex-shrink-0">
+                                                    {% if message.sender.profile.profile_picture %}
+                                                        <img src="{{ message.sender.profile.profile_picture.url }}" class="rounded-circle me-2" width="32" height="32" alt="{{ message.sender.username }}">
+                                                    {% else %}
+                                                        <img src="https://via.placeholder.com/32" class="rounded-circle me-2" width="32" height="32" alt="{{ message.sender.username }}">
+                                                    {% endif %}
+                                                </div>
                                                 <strong>{{ message.sender.username }}</strong>
                                             </div>
                                         {% elif folder == 'sent' %}
                                             <div class="d-flex align-items-center">
-                                                <img src="{{ message.recipient.profile.avatar_url|default:'https://via.placeholder.com/32' }}" class="rounded-circle me-2" width="32" height="32" alt="{{ message.recipient.username }}">
+                                                <div class="flex-shrink-0">
+                                                    {% if message.recipient.profile.profile_picture %}
+                                                        <img src="{{ message.recipient.profile.profile_picture.url }}" class="rounded-circle me-2" width="32" height="32" alt="{{ message.recipient.username }}">
+                                                    {% else %}
+                                                        <img src="https://via.placeholder.com/32" class="rounded-circle me-2" width="32" height="32" alt="{{ message.recipient.username }}">
+                                                    {% endif %}
+                                                </div>
                                                 <span>To: <strong>{{ message.recipient.username }}</strong></span>
                                             </div>
                                         {% endif %}

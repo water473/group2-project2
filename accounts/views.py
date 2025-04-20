@@ -57,7 +57,7 @@ def assign_starter_pokemon(user):
 @login_required
 def view_profile(request):
     """View the logged-in user's profile."""
-    return render(request, 'accounts/profile.html')
+    return render(request, 'accounts/profile.html', {'profile_user': request.user})
 
 @login_required
 def edit_profile(request):

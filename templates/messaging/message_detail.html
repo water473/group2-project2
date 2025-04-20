@@ -170,14 +170,22 @@
             </div>
             <div class="card-body text-center">
                 {% if message_folder == 'inbox' %}
-                    <img src="{{ message.sender.profile.avatar_url|default:'https://via.placeholder.com/100' }}" class="rounded-circle mb-3" width="100" height="100" alt="{{ message.sender.username }}">
+                    {% if message.sender.profile.profile_picture %}
+                        <img src="{{ message.sender.profile.profile_picture.url }}" class="rounded-circle mb-3" width="100" height="100" alt="{{ message.sender.username }}">
+                    {% else %}
+                        <img src="https://via.placeholder.com/100" class="rounded-circle mb-3" width="100" height="100" alt="{{ message.sender.username }}">
+                    {% endif %}
                     <h5>{{ message.sender.username }}</h5>
                     <p class="text-muted">{{ message.sender.profile.trainer_level }} Trainer</p>
                     <a href="{% url 'accounts:view_user_profile' message.sender.username %}" class="btn btn-outline-primary btn-sm">
                         <i class="fas fa-user me-1"></i>View Profile
                     </a>
                 {% else %}
-                    <img src="{{ message.recipient.profile.avatar_url|default:'https://via.placeholder.com/100' }}" class="rounded-circle mb-3" width="100" height="100" alt="{{ message.recipient.username }}">
+                    {% if message.recipient.profile.profile_picture %}
+                        <img src="{{ message.recipient.profile.profile_picture.url }}" class="rounded-circle mb-3" width="100" height="100" alt="{{ message.recipient.username }}">
+                    {% else %}
+                        <img src="https://via.placeholder.com/100" class="rounded-circle mb-3" width="100" height="100" alt="{{ message.recipient.username }}">
+                    {% endif %}
                     <h5>{{ message.recipient.username }}</h5>
                     <p class="text-muted">{{ message.recipient.profile.trainer_level }} Trainer</p>
                     <a href="{% url 'accounts:view_user_profile' message.recipient.username %}" class="btn btn-outline-primary btn-sm">

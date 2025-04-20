@@ -10,7 +10,11 @@
             <div class="card-body p-4">
                 <div class="row align-items-center">
                     <div class="col-md-2 text-center">
-                        <img src="{{ profile_user.profile.avatar_url|default:'https://via.placeholder.com/150' }}" class="rounded-circle img-fluid" style="max-width: 150px;" alt="{{ profile_user.username }}">
+                        {% if profile_user.profile.profile_picture %}
+                            <img src="{{ profile_user.profile.profile_picture.url }}" class="rounded-circle img-fluid" style="max-width: 150px;" alt="{{ profile_user.username }}">
+                        {% else %}
+                            <img src="https://via.placeholder.com/150" class="rounded-circle img-fluid" style="max-width: 150px;" alt="{{ profile_user.username }}">
+                        {% endif %}
                     </div>
                     <div class="col-md-7">
                         <h1 class="mb-1">{{ profile_user.username }}</h1>
@@ -38,24 +42,18 @@
                     <div class="col-md-3 text-end">
                         {% if user != profile_user %}
                             <div class="d-grid gap-2">
-                                <!-- Temporarily commented out until messaging functionality is implemented -->
-                                <button class="btn btn-primary" disabled>
+                                <a href="{% url 'messaging:new_message' profile_user.username %}" class="btn btn-primary">
                                     <i class="fas fa-envelope me-2"></i>Send Message
-                                </button>
-                                <!-- Temporarily commented out until trading functionality is implemented -->
-                                <button class="btn btn-outline-primary" disabled>
+                                </a>
+                                <a href="{% url 'trading:create_trade' profile_user.username %}" class="btn btn-outline-primary">
                                     <i class="fas fa-exchange-alt me-2"></i>Propose Trade
-                                </button>
+                                </a>
                             </div>
                         {% else %}
                             <div class="d-grid gap-2">
                                 <a href="{% url 'accounts:edit_profile' %}" class="btn btn-warning">
                                     <i class="fas fa-user-edit me-2"></i>Edit Profile
                                 </a>
-                                <!-- Temporarily commented out until account settings functionality is implemented -->
-                                <button class="btn btn-outline-secondary" disabled>
-                                    <i class="fas fa-cog me-2"></i>Account Settings
-                                </button>
                             </div>
                         {% endif %}
                     </div>
@@ -318,11 +316,14 @@
                                 <h5 class="mb-3"><i class="fas fa-users me-2"></i>Trainers With Similar Collections</h5>
                                 <div class="list-group">
                                     {% for trainer in recommended_traders %}
-                                        <!-- Temporarily disabled until profile viewing functionality is implemented -->
                                         <div class="list-group-item">
                                             <div class="d-flex align-items-center">
                                                 <div class="flex-shrink-0">
-                                                    <img src="{{ trainer.profile.avatar_url|default:'https://via.placeholder.com/40' }}" class="rounded-circle" width="40" height="40" alt="{{ trainer.username }}">
+                                                    {% if trainer.profile.profile_picture %}
+                                                        <img src="{{ trainer.profile.profile_picture.url }}" class="rounded-circle" width="40" height="40" alt="{{ trainer.username }}">
+                                                    {% else %}
+                                                        <img src="https://via.placeholder.com/40" class="rounded-circle" width="40" height="40" alt="{{ trainer.username }}">
+                                                    {% endif %}
                                                 </div>
                                                 <div class="flex-grow-1 ms-3">
                                                     <div class="d-flex justify-content-between">

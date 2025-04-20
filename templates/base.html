@@ -172,7 +172,12 @@
                     {% if user.is_authenticated %}
                         <div class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-user-circle me-1"></i>{{ user.username }}
+                                {% if user.profile.profile_picture %}
+                                    <img src="{{ user.profile.profile_picture.url }}" class="rounded-circle me-1" width="24" height="24" alt="{{ user.username }}">
+                                {% else %}
+                                    <i class="fas fa-user-circle me-1"></i>
+                                {% endif %}
+                                {{ user.username }}
                                 {% if user.profile.coins %}
                                     <span class="badge bg-warning text-dark ms-1">{{ user.profile.coins }} coins</span>
                                 {% endif %}
