@@ -148,6 +148,9 @@ def view_message(request, message_id):
         message.is_read = True
         message.save()
     
+    # Determine if this is an inbox or sent message
+    message_folder = 'inbox' if message.recipient == request.user else 'sent'
+    
     # Get message thread if it exists
     message_thread = Message.objects.filter(
         Q(sender=message.sender, recipient=message.recipient) |
@@ -157,7 +160,7 @@ def view_message(request, message_id):
     context = {
         'message': message,
         'message_thread': message_thread,
-        'message_folder': 'inbox' if message.recipient == request.user else 'sent',
+        'message_folder': message_folder,
     }
     
     return render(request, 'messaging/message_detail.html', context)
@@ -168,6 +171,7 @@ def new_message(request, username=None):
     if request.method == 'POST':
         recipient_username = request.POST.get('recipient', username)
         recipient = get_object_or_404(User, username=recipient_username)
+        parent_message_id = request.POST.get('parent_message_id')
         
         # Don't allow messaging yourself
         if recipient == request.user:
@@ -180,6 +184,7 @@ def new_message(request, username=None):
             recipient=recipient,
             subject=request.POST.get('subject', ''),
             content=request.POST.get('content', ''),
+            parent_message_id=parent_message_id
         )
         
         messages.success(request, 'Message sent successfully!')
@@ -187,11 +192,24 @@ def new_message(request, username=None):
     
     # If username is provided, pre-fill the recipient
     recipient = None
+    parent_message = None
     if username:
         recipient = get_object_or_404(User, username=username)
     
+    # If parent_message_id is provided, get the parent message
+    parent_message_id = request.GET.get('parent_message_id')
+    if parent_message_id:
+        parent_message = get_object_or_404(
+            Message,
+            Q(sender=request.user) | Q(recipient=request.user),
+            id=parent_message_id
+        )
+        if not recipient:
+            recipient = parent_message.sender if parent_message.recipient == request.user else parent_message.recipient
+    
     context = {
         'recipient': recipient,
+        'parent_message': parent_message,
     }
     
     return render(request, 'messaging/new_message.html', context)
@@ -238,4 +256,16 @@ def delete_message(request, message_id):
     message.delete()
     
     messages.success(request, 'Message deleted successfully!')
+    return redirect('messaging:inbox')
+
+@login_required
+def mark_all_read(request):
+    """Mark all unread messages as read."""
+    try:
+        # Mark all unread messages as read
+        Message.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
+        messages.success(request, "All messages marked as read.")
+    except Exception as e:
+        messages.error(request, f"Error marking messages as read: {str(e)}")
+    
     return redirect('messaging:inbox')

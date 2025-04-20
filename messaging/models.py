@@ -28,6 +28,13 @@ class Message(models.Model):
     is_read = models.BooleanField(default=False)
     is_archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now)
+    parent_message = models.ForeignKey(
+        'self',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='replies'
+    )
     related_transaction = models.ForeignKey(
         'marketplace.Transaction',
         on_delete=models.SET_NULL,

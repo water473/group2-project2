@@ -23,21 +23,15 @@
                 <h5 class="mb-0">Folders</h5>
             </div>
             <div class="list-group list-group-flush">
-                <!-- Keep the inbox URL since it exists -->
                 <a href="{% url 'messaging:inbox' %}" class="list-group-item list-group-item-action {% if folder == 'inbox' %}active{% endif %}">
                     <i class="fas fa-inbox me-2"></i>Inbox
                     {% if unread_count > 0 %}
                         <span class="badge bg-primary rounded-pill float-end">{{ unread_count }}</span>
                     {% endif %}
                 </a>
-                <!-- Disabled until messaging:sent_messages URL is implemented -->
-                <button class="list-group-item list-group-item-action {% if folder == 'sent' %}active{% endif %}" disabled>
+                <a href="{% url 'messaging:inbox' %}?folder=sent" class="list-group-item list-group-item-action {% if folder == 'sent' %}active{% endif %}">
                     <i class="fas fa-paper-plane me-2"></i>Sent
-                </button>
-                <!-- Disabled until messaging:archived_messages URL is implemented -->
-                <button class="list-group-item list-group-item-action {% if folder == 'archived' %}active{% endif %}" disabled>
-                    <i class="fas fa-archive me-2"></i>Archived
-                </button>
+                </a>
             </div>
         </div>
 
@@ -49,8 +43,7 @@
             <div class="list-group list-group-flush">
                 {% if recent_contacts %}
                     {% for contact in recent_contacts %}
-                        <!-- Disabled until messaging:new_message URL is implemented -->
-                        <div class="list-group-item list-group-item-action">
+                        <a href="{% url 'messaging:new_message_to_user' contact.username %}" class="list-group-item list-group-item-action">
                             <div class="d-flex align-items-center">
                                 <div class="flex-shrink-0">
                                     <img src="{{ contact.profile.avatar_url|default:'https://via.placeholder.com/40' }}" class="rounded-circle" width="40" height="40" alt="{{ contact.username }}">
@@ -60,7 +53,7 @@
                                     <small class="d-block text-muted">{{ contact.profile.trainer_level }} Trainer</small>
                                 </div>
                             </div>
-                        </div>
+                        </a>
                     {% endfor %}
                 {% else %}
                     <div class="list-group-item text-center text-muted py-3">
@@ -82,30 +75,19 @@
                             Inbox
                         {% elif folder == 'sent' %}
                             Sent Messages
-                        {% elif folder == 'archived' %}
-                            Archived Messages
                         {% endif %}
                     </h3>
-                    {% if messages_list %}
+                    {% if messages_list and folder == 'inbox' %}
                         <div class="btn-group">
                             <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-cog me-1"></i>Actions
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li>
-                                    <!-- Disabled until messaging:mark_all_read URL is implemented -->
-                                    <button type="button" class="dropdown-item" disabled>
+                                    <a href="{% url 'messaging:mark_all_read' %}" class="dropdown-item">
                                         <i class="fas fa-check-double me-2"></i>Mark All Read
-                                    </button>
+                                    </a>
                                 </li>
-                                {% if folder == 'inbox' %}
-                                    <li>
-                                        <!-- Disabled until messaging:archive_all URL is implemented -->
-                                        <button type="button" class="dropdown-item" disabled>
-                                            <i class="fas fa-archive me-2"></i>Archive All
-                                        </button>
-                                    </li>
-                                {% endif %}
                             </ul>
                         </div>
                     {% endif %}
@@ -116,8 +98,7 @@
                 {% if messages_list %}
                     <div class="list-group list-group-flush">
                         {% for message in messages_list %}
-                            <!-- Disabled until messaging:view_message URL is implemented -->
-                            <div class="list-group-item list-group-item-action p-3 {% if not message.is_read and folder == 'inbox' %}list-group-item-primary{% endif %}">
+                            <a href="{% url 'messaging:view_message' message.id %}" class="list-group-item list-group-item-action p-3 {% if not message.is_read and folder == 'inbox' %}list-group-item-primary{% endif %}">
                                 <div class="d-flex w-100 justify-content-between align-items-center">
                                     <div>
                                         {% if folder == 'inbox' %}
@@ -147,7 +128,7 @@
                                         {% endif %}
                                     </div>
                                 </div>
-                            </div>
+                            </a>
                         {% endfor %}
                     </div>
                     
@@ -203,15 +184,10 @@
                             <i class="fas fa-paper-plane mb-3" style="font-size: 4rem; opacity: 0.3;"></i>
                             <h4>No sent messages</h4>
                             <p class="text-muted">Messages you send will appear here</p>
-                        {% elif folder == 'archived' %}
-                            <i class="fas fa-archive mb-3" style="font-size: 4rem; opacity: 0.3;"></i>
-                            <h4>No archived messages</h4>
-                            <p class="text-muted">Archived messages will appear here</p>
                         {% endif %}
-                        <!-- Disabled until messaging:new_message URL is implemented -->
-                        <button class="btn btn-primary mt-2" disabled>
+                        <a href="{% url 'messaging:new_message' %}" class="btn btn-primary mt-2">
                             <i class="fas fa-pen me-2"></i>Compose a Message
-                        </button>
+                        </a>
                     </div>
                 {% endif %}
             </div>

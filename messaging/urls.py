@@ -9,6 +9,6 @@ urlpatterns = [
     path('new/', views.new_message, name='new_message'),
     path('new/<str:username>/', views.new_message, name='new_message_to_user'),
     path('mark-read/<int:message_id>/', views.mark_message_read, name='mark_message_read'),
-    path('archive/<int:message_id>/', views.archive_message, name='archive_message'),
+    path('mark-all-read/', views.mark_all_read, name='mark_all_read'),
     path('delete/<int:message_id>/', views.delete_message, name='delete_message'),
 ] 
