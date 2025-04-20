@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+
+{% block title %}Trade Offer - PokeTrade{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>Trade Offer</h1>
+            <p class="lead">Review and respond to this trade offer</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Trade Details -->
+        <div class="col-md-8 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Trade Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6>From: {{ trade_offer.sender.username }}</h6>
+                            <h6>To: {{ trade_offer.recipient.username }}</h6>
+                            <p class="text-muted">Sent on {{ trade_offer.created_at|date:"F j, Y" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Status: <span class="badge bg-{{ trade_offer.status|lower }}">{{ trade_offer.get_status_display }}</span></h6>
+                        </div>
+                    </div>
+
+                    {% if trade_offer.message %}
+                        <div class="alert alert-info mb-4">
+                            <h6>Message:</h6>
+                            <p class="mb-0">{{ trade_offer.message }}</p>
+                        </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <!-- Offered Pokémon -->
+                        <div class="col-md-6">
+                            <h6>Offered Pokémon:</h6>
+                            <div class="list-group">
+                                {% for pokemon in trade_offer.offered_pokemon.all %}
+                                    <div class="list-group-item">
+                                        <div class="d-flex align-items-center">
+                                            <img src="{{ pokemon.card.image_url }}" 
+                                                 alt="{{ pokemon.card.name }}" 
+                                                 class="me-2" style="width: 40px; height: 40px;">
+                                            <div>
+                                                <div>{{ pokemon.card.name }}</div>
+                                                {% if pokemon.nickname %}
+                                                    <small class="text-muted">({{ pokemon.nickname }})</small>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Requested Pokémon -->
+                        <div class="col-md-6">
+                            <h6>Requested Pokémon:</h6>
+                            <div class="list-group">
+                                {% for pokemon in trade_offer.requested_pokemon.all %}
+                                    <div class="list-group-item">
+                                        <div class="d-flex align-items-center">
+                                            <img src="{{ pokemon.card.image_url }}" 
+                                                 alt="{{ pokemon.card.name }}" 
+                                                 class="me-2" style="width: 40px; height: 40px;">
+                                            <div>
+                                                <div>{{ pokemon.card.name }}</div>
+                                                {% if pokemon.nickname %}
+                                                    <small class="text-muted">({{ pokemon.nickname }})</small>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Response Form -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Trade Actions</h5>
+                </div>
+                <div class="card-body">
+                    {% if can_respond %}
+                        <form method="post" class="needs-validation" novalidate>
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="response" class="form-label">Your Response</label>
+                                <select class="form-select" id="response" name="response" required>
+                                    <option value="">Choose a response...</option>
+                                    <option value="accept">Accept Offer</option>
+                                    <option value="decline">Decline Offer</option>
+                                    <option value="counter">Counter Offer</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="message" class="form-label">Message (Optional)</label>
+                                <textarea class="form-control" id="message" name="message" rows="3" 
+                                          placeholder="Add a message to your response..."></textarea>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">Submit Response</button>
+                                <a href="{% url 'trading:trade_offers' %}" class="btn btn-secondary">Back to Offers</a>
+                            </div>
+                        </form>
+                    {% elif can_cancel %}
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="d-grid gap-2">
+                                <button type="submit" name="action" value="cancel" class="btn btn-warning">Cancel Trade</button>
+                                <a href="{% url 'trading:trade_offers' %}" class="btn btn-secondary">Back to Offers</a>
+                            </div>
+                        </form>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <p class="mb-0">
+                                {% if trade_offer.status == 'pending' %}
+                                    {% if is_sender %}
+                                        Waiting for {{ trade_offer.recipient.username }} to respond.
+                                    {% else %}
+                                        This trade offer has already been responded to.
+                                    {% endif %}
+                                {% else %}
+                                    This trade offer has been {{ trade_offer.get_status_display|lower }}.
+                                {% endif %}
+                            </p>
+                        </div>
+                        <a href="{% url 'trading:trade_offers' %}" class="btn btn-secondary w-100">Back to Offers</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const responseSelect = document.getElementById('response');
+    const messageTextarea = document.getElementById('message');
+
+    responseSelect.addEventListener('change', function() {
+        if (this.value === 'counter') {
+            messageTextarea.placeholder = 'Please explain your counter offer...';
+        } else {
+            messageTextarea.placeholder = 'Add a message to your response...';
+        }
+    });
+});
+</script>
+{% endblock %}
+{% endblock %} 
