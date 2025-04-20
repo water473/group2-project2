@@ -4,8 +4,11 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Profile
-from pokemon.models import Pokemon, UserCollection
+from pokemon.models import Pokemon, UserCollection, UserPokemon
 import random
+from django.db.models import Count, Sum
+from django.db.models import Q
+from trading.models import TradeOffer
 
 def register(request):
     """Register a new user and assign initial Pokemon."""
@@ -57,7 +60,61 @@ def assign_starter_pokemon(user):
 @login_required
 def view_profile(request):
     """View the logged-in user's profile."""
-    return render(request, 'accounts/profile.html', {'profile_user': request.user})
+    # Get collection stats
+    collection = UserPokemon.objects.filter(user=request.user).select_related('card')
+    
+    # Debug: Print collection count
+    print(f"Total collection count: {collection.count()}")
+    print(f"Collection items: {list(collection.values('card__name', 'card__rarity'))}")
+    
+    total_pokemon = collection.count()
+    
+    # Get unique species count
+    unique_pokemon = collection.values('card__name').distinct().count()
+    
+    # Get rarest pokemon
+    rarest_pokemon = collection.order_by('card__rarity').first()
+    print(f"Rarest pokemon: {rarest_pokemon}")
+    
+    # Calculate collection value
+    collection_value = collection.aggregate(total_value=Sum('card__base_value'))['total_value'] or 0
+    
+    # Get type distribution
+    type_distribution = {}
+    for pokemon in collection:
+        for type_name in pokemon.card.types:
+            type_distribution[type_name] = type_distribution.get(type_name, 0) + 1
+
+    # Get trading stats
+    trade_stats = {
+        'total_trades': TradeOffer.objects.filter(
+            Q(sender=request.user) | Q(recipient=request.user)
+        ).count(),
+        'successful_trades': TradeOffer.objects.filter(
+            Q(sender=request.user) | Q(recipient=request.user),
+            status='accepted'
+        ).count()
+    }
+
+    # Get recent trades
+    recent_trades = TradeOffer.objects.filter(
+        Q(sender=request.user) | Q(recipient=request.user)
+    ).order_by('-created_at')[:5]
+    
+    context = {
+        'profile_user': request.user,
+        'collection_stats': {
+            'total_pokemon': total_pokemon,
+            'unique_pokemon': unique_pokemon,
+            'rarest_pokemon': rarest_pokemon.card if rarest_pokemon else None,
+            'collection_value': collection_value,
+            'type_distribution': type_distribution
+        },
+        'trade_stats': trade_stats,
+        'recent_trades': recent_trades
+    }
+    
+    return render(request, 'accounts/profile.html', context)
 
 @login_required
 def edit_profile(request):

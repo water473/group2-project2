@@ -86,7 +86,14 @@
                     </div>
                     <div class="col-6 text-center">
                         <div class="p-3 bg-light rounded">
-                            <h4 class="fw-bold mb-0">{{ collection_stats.rarest_pokemon.name }}</h4>
+                            <h4 class="fw-bold mb-0">
+                                {% if collection_stats.rarest_pokemon %}
+                                    {{ collection_stats.rarest_pokemon.name }}
+                                    <small class="d-block text-muted">Rarity: {{ collection_stats.rarest_pokemon.rarity }}</small>
+                                {% else %}
+                                    None
+                                {% endif %}
+                            </h4>
                             <p class="text-muted mb-0">Rarest Pokémon</p>
                         </div>
                     </div>
@@ -113,12 +120,11 @@
                     {% endfor %}
                 {% endif %}
 
-                {% if user == profile_user or perms.pokemon.view_collection %}
+                {% if user == profile_user %}
                     <div class="mt-4 text-center">
-                        <!-- Temporarily disabled until collection view functionality is implemented -->
-                        <button class="btn btn-primary" disabled>
+                        <a href="{% url 'pokemon:collection' %}" class="btn btn-primary">
                             <i class="fas fa-th me-2"></i>View Full Collection
-                        </button>
+                        </a>
                     </div>
                 {% endif %}
             </div>
@@ -133,22 +139,16 @@
             </div>
             <div class="card-body">
                 <div class="row g-4 mb-4">
-                    <div class="col-4 text-center">
+                    <div class="col-6 text-center">
                         <div class="p-3 bg-light rounded">
                             <h4 class="fw-bold mb-0">{{ trade_stats.total_trades }}</h4>
-                            <p class="text-muted mb-0">Trades</p>
+                            <p class="text-muted mb-0">Total Trades</p>
                         </div>
                     </div>
-                    <div class="col-4 text-center">
+                    <div class="col-6 text-center">
                         <div class="p-3 bg-light rounded">
                             <h4 class="fw-bold mb-0">{{ trade_stats.successful_trades }}</h4>
-                            <p class="text-muted mb-0">Successful</p>
-                        </div>
-                    </div>
-                    <div class="col-4 text-center">
-                        <div class="p-3 bg-light rounded">
-                            <h4 class="fw-bold mb-0">{{ trade_stats.trade_rating|floatformat:1 }}</h4>
-                            <p class="text-muted mb-0">Rating</p>
+                            <p class="text-muted mb-0">Successful Trades</p>
                         </div>
                     </div>
                 </div>
