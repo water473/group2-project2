@@ -13,14 +13,14 @@ def send_transaction_messages(sender, instance, created, **kwargs):
         Message.objects.create(
             sender=instance.buyer,
             recipient=instance.listing.seller,
-            content=f"I have purchased your {instance.listing.pokemon.pokemon.name} for {instance.price_paid} coins.",
-            related_transaction=instance
+            subject=f"Your {instance.listing.pokemon.card.name} has been sold!",
+            content=f"{instance.buyer.username} has purchased your {instance.listing.pokemon.card.name} for {instance.price_paid} coins."
         )
         
         # Message to buyer
         Message.objects.create(
             sender=instance.listing.seller,
             recipient=instance.buyer,
-            content=f"Thank you for purchasing my {instance.listing.pokemon.pokemon.name}. The transaction has been completed.",
-            related_transaction=instance
+            subject=f"Purchase of {instance.listing.pokemon.card.name} successful!",
+            content=f"You have successfully purchased {instance.listing.pokemon.card.name} from {instance.listing.seller.username} for {instance.price_paid} coins."
         ) 

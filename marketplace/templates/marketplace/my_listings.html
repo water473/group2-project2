@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">My Marketplace Listings</h1>
+
+    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
+        {% for listing in listings %}
+        <div class="col">
+            <div class="card h-100 listing-card">
+                <div class="card-img-container">
+                    <img src="{{ listing.pokemon.card.image_url }}" alt="{{ listing.pokemon.card.name }}">
+                </div>
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="card-title mb-0">{{ listing.pokemon.card.name }}</h6>
+                        <span class="badge {% if listing.status == 'active' %}bg-success{% elif listing.status == 'sold' %}bg-primary{% else %}bg-secondary{% endif %}">
+                            {{ listing.get_status_display }}
+                        </span>
+                    </div>
+                    
+                    {% if listing.pokemon.nickname %}
+                        <p class="nickname mb-2">"{{ listing.pokemon.nickname }}"</p>
+                    {% endif %}
+                    
+                    <div class="types-container mb-2">
+                        {% for type in listing.pokemon.card.types %}
+                            <span class="pokemon-type bg-primary text-white">{{ type }}</span>
+                        {% endfor %}
+                        <span class="pokemon-type bg-warning text-dark">{{ listing.pokemon.card.rarity }}</span>
+                    </div>
+                    
+                    <div class="price-tag mb-2">
+                        {{ listing.price }} <small>coins</small>
+                    </div>
+                    
+                    {% if listing.status == 'sold' %}
+                        <p class="sold-info">
+                            <small class="text-muted">Sold to {{ listing.buyer.username }}<br>{{ listing.sold_at|date:"M d, Y" }}</small>
+                        </p>
+                    {% endif %}
+                </div>
+                {% if listing.status == 'active' %}
+                    <div class="card-footer p-2">
+                        <form method="POST" action="{% url 'marketplace:cancel_listing' listing.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-purchase btn-sm w-100">
+                                <i class="fas fa-times me-1"></i>Cancel
+                            </button>
+                        </form>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>You don't have any marketplace listings yet.
+                <a href="{% url 'pokemon:collection' %}" class="alert-link">Go to your collection</a> to list a Pokemon for sale.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .card-img-container {
+        height: 180px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f8f9fa;
+        border-bottom: 1px solid rgba(0,0,0,0.1);
+    }
+    
+    .card-img-container img {
+        max-height: 100%;
+        width: auto;
+        object-fit: contain;
+        transition: transform 0.3s ease;
+    }
+    
+    .listing-card {
+        transition: all 0.3s ease;
+        border: none;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .listing-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    }
+
+    .listing-card:hover .card-img-container img {
+        transform: scale(1.05);
+    }
+    
+    .card-title {
+        font-size: 1rem;
+        color: #2c3e50;
+        line-height: 1.2;
+    }
+    
+    .nickname {
+        font-style: italic;
+        color: #6c757d;
+        font-size: 0.85rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .pokemon-type {
+        padding: 0.25rem 0.5rem;
+        border-radius: 15px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        text-transform: capitalize;
+        margin-right: 0.25rem;
+        margin-bottom: 0.25rem;
+        display: inline-block;
+    }
+    
+    .price-tag {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    .price-tag small {
+        font-size: 0.8rem;
+        font-weight: normal;
+        color: #6c757d;
+    }
+    
+    .btn-purchase {
+        padding: 0.35rem 0.75rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 0.8rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-purchase:hover {
+        transform: translateY(-1px);
+    }
+
+    .sold-info {
+        font-size: 0.8rem;
+        line-height: 1.2;
+        margin-bottom: 0;
+    }
+
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.35em 0.65em;
+    }
+
+    .types-container {
+        min-height: 28px;
+    }
+</style>
+{% endblock %} 

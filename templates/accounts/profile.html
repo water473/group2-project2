@@ -211,16 +211,22 @@
             </div>
             <div class="card-body">
                 <div class="row g-4 mb-4">
-                    <div class="col-6 text-center">
+                    <div class="col-4 text-center">
                         <div class="p-3 bg-light rounded">
                             <h4 class="fw-bold mb-0">{{ market_stats.total_sold }}</h4>
-                            <p class="text-muted mb-0">Pokémon Sold</p>
+                            <p class="text-muted mb-0">Sold</p>
                         </div>
                     </div>
-                    <div class="col-6 text-center">
+                    <div class="col-4 text-center">
                         <div class="p-3 bg-light rounded">
                             <h4 class="fw-bold mb-0">{{ market_stats.total_purchased }}</h4>
-                            <p class="text-muted mb-0">Pokémon Bought</p>
+                            <p class="text-muted mb-0">Bought</p>
+                        </div>
+                    </div>
+                    <div class="col-4 text-center">
+                        <div class="p-3 bg-light rounded">
+                            <h4 class="fw-bold mb-0">{{ market_stats.total_value }}</h4>
+                            <p class="text-muted mb-0">Coins Earned</p>
                         </div>
                     </div>
                 </div>
@@ -229,43 +235,65 @@
                     <h5 class="mb-3">Active Listings</h5>
                     <div class="list-group list-group-flush">
                         {% for listing in active_listings %}
-                            <!-- Temporarily disabled until marketplace view functionality is implemented -->
                             <div class="list-group-item px-0">
-                                <div class="d-flex">
-                                    <div class="flex-shrink-0">
-                                        <img src="{{ listing.pokemon.pokemon.image_url }}" alt="{{ listing.pokemon.pokemon.name }}" class="rounded" width="40" height="40">
-                                    </div>
-                                    <div class="flex-grow-1 ms-3">
-                                        <div class="d-flex justify-content-between">
-                                            <div>{{ listing.pokemon.pokemon.name }}</div>
+                                <div class="d-flex align-items-center">
+                                    <img src="{{ listing.pokemon.card.image_url }}" alt="{{ listing.pokemon.card.name }}" class="rounded" width="40" height="40">
+                                    <div class="ms-3 flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h6 class="mb-0">{{ listing.pokemon.card.name }}</h6>
                                             <span class="badge bg-warning text-dark">{{ listing.price }} coins</span>
                                         </div>
-                                        <small class="text-muted">Listed: {{ listing.created_at|date:"M d, Y" }}</small>
+                                        <small class="text-muted">Listed {{ listing.created_at|timesince }} ago</small>
                                     </div>
                                 </div>
                             </div>
                         {% endfor %}
                     </div>
-                {% else %}
+                {% endif %}
+
+                {% if recent_transactions %}
+                    <h5 class="mt-4 mb-3">Recent Transactions</h5>
+                    <div class="list-group list-group-flush">
+                        {% for transaction in recent_transactions %}
+                            <div class="list-group-item px-0">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        {% if transaction.buyer == profile_user %}
+                                            <span class="badge bg-success">Purchased</span>
+                                        {% else %}
+                                            <span class="badge bg-primary">Sold</span>
+                                        {% endif %}
+                                        <small class="text-muted ms-2">{{ transaction.transaction_date|date:"M d" }}</small>
+                                    </div>
+                                    <span class="badge bg-warning text-dark">{{ transaction.price_paid }} coins</span>
+                                </div>
+                                <div class="mt-2">
+                                    <small>
+                                        {{ transaction.listing.pokemon.card.name }}
+                                        {% if transaction.buyer == profile_user %}
+                                            from {{ transaction.listing.seller.username }}
+                                        {% else %}
+                                            to {{ transaction.buyer.username }}
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% if not active_listings and not recent_transactions %}
                     <div class="text-center py-4">
                         <i class="fas fa-store mb-3" style="font-size: 3rem; opacity: 0.3;"></i>
-                        <p class="text-muted">No active listings at the moment</p>
+                        <p class="text-muted">No marketplace activity yet</p>
                     </div>
                 {% endif %}
 
                 {% if user == profile_user %}
                     <div class="mt-4 text-center">
-                        <!-- Temporarily disabled until marketplace listings functionality is implemented -->
-                        <button class="btn btn-primary" disabled>
+                        <a href="{% url 'marketplace:my_listings' %}" class="btn btn-primary">
                             <i class="fas fa-list me-2"></i>View All My Listings
-                        </button>
-                    </div>
-                {% else %}
-                    <div class="mt-4 text-center">
-                        <!-- Temporarily disabled until marketplace listings functionality is implemented -->
-                        <button class="btn btn-primary" disabled>
-                            <i class="fas fa-list me-2"></i>View All Listings
-                        </button>
+                        </a>
                     </div>
                 {% endif %}
             </div>

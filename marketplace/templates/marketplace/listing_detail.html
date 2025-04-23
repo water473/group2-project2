@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <img src="{{ listing.pokemon.pokemon.image_url }}" alt="{{ listing.pokemon.pokemon.name }}" class="img-fluid rounded">
+                </div>
+                <div class="col-md-8">
+                    <h2>{{ listing.pokemon.pokemon.name }}</h2>
+                    <p class="text-muted">Level {{ listing.pokemon.level }}</p>
+                    
+                    <div class="mb-3">
+                        <span class="badge bg-primary">{{ listing.pokemon.pokemon.type }}</span>
+                        <span class="badge bg-warning">{{ listing.pokemon.pokemon.rarity }}</span>
+                    </div>
+
+                    <p>{{ listing.description }}</p>
+
+                    <div class="mb-3">
+                        <h4>{{ listing.price }} coins</h4>
+                        <p class="text-muted">Listed by {{ listing.seller.username }}</p>
+                    </div>
+
+                    {% if user.is_authenticated %}
+                        {% if user == listing.seller %}
+                            <form method="POST" action="{% url 'marketplace:cancel_listing' listing.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger">Cancel Listing</button>
+                            </form>
+                        {% else %}
+                            <form method="POST" action="{% url 'marketplace:purchase' listing.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success">Purchase</button>
+                            </form>
+                        {% endif %}
+                    {% else %}
+                        <p class="text-muted">Please <a href="{% url 'login' %}">login</a> to purchase this Pokemon.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

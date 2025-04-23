@@ -1,0 +1,223 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    .card-img-container {
+        height: 250px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f8f9fa;
+        border-bottom: 1px solid rgba(0,0,0,0.1);
+    }
+    
+    .card-img-container img {
+        max-height: 100%;
+        width: auto;
+        object-fit: contain;
+        transition: transform 0.3s ease;
+    }
+    
+    .listing-card {
+        transition: all 0.3s ease;
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .listing-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    }
+
+    .listing-card:hover .card-img-container img {
+        transform: scale(1.05);
+    }
+    
+    .card-body {
+        padding: 1.25rem;
+    }
+    
+    .card-title {
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+        color: #2c3e50;
+    }
+    
+    .nickname {
+        font-style: italic;
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+    
+    .pokemon-type {
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-transform: capitalize;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+        display: inline-block;
+    }
+    
+    .price-tag {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+    
+    .seller-info {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    
+    .card-footer {
+        background-color: transparent;
+        border-top: 1px solid rgba(0,0,0,0.1);
+        padding: 1rem;
+    }
+    
+    .btn-purchase {
+        padding: 0.5rem 1.5rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-purchase:hover {
+        transform: translateY(-2px);
+    }
+    
+    .btn-cancel {
+        background-color: #dc3545;
+        border-color: #dc3545;
+        color: white;
+    }
+    
+    .btn-cancel:hover {
+        background-color: #c82333;
+        border-color: #bd2130;
+    }
+
+    .filters-card {
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+
+    .form-control, .form-select {
+        border-radius: 10px;
+        border: 1px solid #ced4da;
+        padding: 0.5rem 1rem;
+    }
+
+    .form-control:focus, .form-select:focus {
+        box-shadow: 0 0 0 0.2rem rgba(255, 215, 0, 0.25);
+        border-color: #ffd700;
+    }
+</style>
+
+<div class="container mt-4">
+    <h1 class="mb-4">Pokemon Marketplace</h1>
+    
+    <!-- Filters -->
+    <div class="card filters-card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <input type="text" name="search" class="form-control" placeholder="Search Pokemon..." value="{{ search_query }}">
+                </div>
+                <div class="col-md-2">
+                    <select name="type" class="form-select">
+                        <option value="">All Types</option>
+                        {% for type in pokemon_types %}
+                        <option value="{{ type }}" {% if pokemon_type == type %}selected{% endif %}>{{ type }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="rarity" class="form-select">
+                        <option value="">All Rarities</option>
+                        {% for rarity in rarities %}
+                        <option value="{{ rarity }}" {% if rarity == rarity %}selected{% endif %}>{{ rarity }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <input type="number" name="min_price" class="form-control" placeholder="Min Price" value="{{ min_price }}">
+                </div>
+                <div class="col-md-2">
+                    <input type="number" name="max_price" class="form-control" placeholder="Max Price" value="{{ max_price }}">
+                </div>
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Listings -->
+    <div class="row">
+        {% for listing in listings %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 listing-card">
+                <div class="card-img-container">
+                    <img src="{{ listing.pokemon.card.image_url }}" alt="{{ listing.pokemon.card.name }}">
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ listing.pokemon.card.name }}</h5>
+                    {% if listing.pokemon.nickname %}
+                        <p class="nickname">"{{ listing.pokemon.nickname }}"</p>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        {% for type in listing.pokemon.card.types %}
+                            <span class="pokemon-type bg-primary text-white">{{ type }}</span>
+                        {% endfor %}
+                        <span class="pokemon-type bg-warning text-dark">{{ listing.pokemon.card.rarity }}</span>
+                    </div>
+                    
+                    <div class="price-tag">
+                        {{ listing.price }} <small>coins</small>
+                    </div>
+                    
+                    <p class="seller-info mb-0">
+                        <i class="fas fa-user me-1"></i> Listed by {{ listing.seller.username }}
+                    </p>
+                </div>
+                <div class="card-footer">
+                    {% if listing.seller != request.user %}
+                        <form method="POST" action="{% url 'marketplace:purchase' listing.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary btn-purchase w-100">
+                                <i class="fas fa-shopping-cart me-2"></i>Purchase
+                            </button>
+                        </form>
+                    {% else %}
+                        <form method="POST" action="{% url 'marketplace:cancel_listing' listing.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-cancel btn-purchase w-100">
+                                <i class="fas fa-times me-2"></i>Cancel Listing
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>No listings found matching your criteria.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %} 

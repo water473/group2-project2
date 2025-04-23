@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import PokemonCard, UserPokemon
+from marketplace.models import MarketplaceListing
 
 # Create your views here.
 
@@ -64,14 +65,41 @@ def edit_collection_pokemon(request, collection_id):
     user_pokemon = get_object_or_404(UserPokemon, id=collection_id, user=request.user)
     
     if request.method == 'POST':
+        # Get the previous state of is_for_sale
+        was_for_sale = user_pokemon.is_for_sale
+        
         # Update the user's Pokemon
         user_pokemon.nickname = request.POST.get('nickname', '')
         user_pokemon.description = request.POST.get('description', '')
         user_pokemon.is_for_sale = 'is_for_sale' in request.POST
-        if user_pokemon.is_for_sale:
-            user_pokemon.price = request.POST.get('price', user_pokemon.card.base_value)
-        user_pokemon.save()
         
+        # Handle marketplace listing
+        if user_pokemon.is_for_sale:
+            price = int(request.POST.get('price', user_pokemon.card.base_value))
+            user_pokemon.price = price
+            
+            # Create marketplace listing if it doesn't exist
+            if not was_for_sale:
+                MarketplaceListing.objects.create(
+                    pokemon=user_pokemon,
+                    seller=request.user,
+                    price=price,
+                    status='active'
+                )
+                messages.success(request, f'{user_pokemon.card.name} has been listed in the marketplace for {price} coins!')
+        else:
+            # If Pokemon was previously for sale but now isn't, cancel any active listings
+            if was_for_sale:
+                active_listing = MarketplaceListing.objects.filter(
+                    pokemon=user_pokemon,
+                    status='active'
+                ).first()
+                if active_listing:
+                    active_listing.status = 'cancelled'
+                    active_listing.save()
+                    messages.info(request, f'{user_pokemon.card.name} has been removed from the marketplace.')
+        
+        user_pokemon.save()
         messages.success(request, f'Pokemon "{user_pokemon.card.name}" updated successfully!')
         return redirect('pokemon:collection_pokemon_detail', collection_id=user_pokemon.id)
     

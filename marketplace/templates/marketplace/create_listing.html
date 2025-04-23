@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Create New Listing</h1>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <!-- Pokemon Details Card -->
+            <div class="card mb-4">
+                <img src="{{ pokemon.card.image_url }}" class="card-img-top" alt="{{ pokemon.card.name }}">
+                <div class="card-body">
+                    <h3>{{ pokemon.card.name }}</h3>
+                    {% if pokemon.nickname %}
+                        <p class="text-muted">Nickname: "{{ pokemon.nickname }}"</p>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        {% if pokemon.card.types %}
+                            {% for type in pokemon.card.types %}
+                                <span class="badge bg-primary me-1">{{ type }}</span>
+                            {% endfor %}
+                        {% endif %}
+                        <span class="badge bg-warning">{{ pokemon.card.rarity }}</span>
+                    </div>
+                    
+                    {% if pokemon.description %}
+                        <p><strong>Description:</strong> {{ pokemon.description }}</p>
+                    {% endif %}
+                    
+                    <p><strong>Set:</strong> {{ pokemon.card.set_name }}</p>
+                    <p><strong>Base Value:</strong> {{ pokemon.card.base_value }} coins</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <!-- Listing Form -->
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title mb-4">Listing Details</h4>
+                    
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="id_price" class="form-label">Price (coins)</label>
+                            <div class="input-group">
+                                <input type="number" name="price" id="id_price" 
+                                       class="form-control" min="1" required 
+                                       value="{{ form.price.value|default:'' }}">
+                                <span class="input-group-text">coins</span>
+                            </div>
+                            <div class="form-text">Suggested price: {{ pokemon.card.base_value }} coins</div>
+                            {% if form.price.errors %}
+                                <div class="alert alert-danger">
+                                    {{ form.price.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Create Listing</button>
+                            <a href="{% url 'pokemon:collection' %}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

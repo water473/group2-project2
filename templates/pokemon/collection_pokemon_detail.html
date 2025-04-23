@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}{{ user_pokemon.card.name }} - PokeTrade{% endblock %}
 
@@ -7,12 +8,10 @@
     <div class="row">
         <div class="col-md-6">
             <div class="card">
-                <img src="{{ user_pokemon.card.large_image_url|default:user_pokemon.card.image_url }}" class="card-img-top" alt="{{ user_pokemon.card.name }}">
+                <img src="{{ user_pokemon.card.image_url }}" class="card-img-top" alt="{{ user_pokemon.card.name }}">
                 <div class="card-body">
                     <h2 class="card-title">{{ user_pokemon.card.name }}</h2>
-                    {% if user_pokemon.nickname %}
-                        <p class="text-muted">Nickname: "{{ user_pokemon.nickname }}"</p>
-                    {% endif %}
+                    <p class="text-muted">Level {{ user_pokemon.level }}</p>
                     
                     <div class="mb-3">
                         {% if user_pokemon.card.types %}
@@ -30,7 +29,7 @@
                         {% else %}
                             <div class="alert alert-info">
                                 This Pokémon is currently listed for sale at {{ user_pokemon.price }} points.
-                                <a href="{% url 'marketplace:edit_listing' collection_id=user_pokemon.id %}" class="alert-link">Edit listing</a>
+                                <a href="{% url 'marketplace:edit_listing' listing_id=user_pokemon.id %}" class="alert-link">Edit listing</a>
                             </div>
                         {% endif %}
                         <a href="{% url 'pokemon:collection' %}" class="btn btn-outline-secondary">Back to Collection</a>

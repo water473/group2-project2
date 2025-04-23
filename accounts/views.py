@@ -9,6 +9,9 @@ import random
 from django.db.models import Count, Sum
 from django.db.models import Q
 from trading.models import TradeOffer
+from marketplace.models import MarketplaceListing, Transaction
+from django.db import models
+
 
 def register(request):
     """Register a new user and assign initial Pokemon."""
@@ -16,17 +19,21 @@ def register(request):
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            
+
             # Assign random Pokemon to the new user
-            # This is a placeholder - you'll need to integrate with the Pokemon API
-            # or have a database of Pokemon to assign from
             starter_pokemon = assign_starter_pokemon(user)
-            
-            messages.success(request, f'Account created successfully! You received {len(starter_pokemon)} starter Pokemon.')
+
+            messages.success(request,
+                             f'Account created successfully! You received {len(starter_pokemon)} starter Pokemon.')
             return redirect('login')
+        else:
+            # Add warnings for form errors
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.warning(request, f"{field.capitalize()}: {error}")
     else:
         form = UserCreationForm()
-    
+
     return render(request, 'accounts/register.html', {'form': form})
 
 def assign_starter_pokemon(user):
@@ -58,83 +65,88 @@ def assign_starter_pokemon(user):
     return starter_pokemon
 
 @login_required
-def view_profile(request):
-    """View the logged-in user's profile."""
-    # Get collection stats
-    collection = UserPokemon.objects.filter(user=request.user).select_related('card')
+def profile(request, username=None):
+    # If no username is provided, show the current user's profile
+    if username is None:
+        profile_user = request.user
+    else:
+        profile_user = get_object_or_404(User, username=username)
     
-    # Debug: Print collection count
-    print(f"Total collection count: {collection.count()}")
-    print(f"Collection items: {list(collection.values('card__name', 'card__rarity'))}")
-    
-    total_pokemon = collection.count()
-    
-    # Get unique species count
-    unique_pokemon = collection.values('card__name').distinct().count()
-    
-    # Get rarest pokemon
-    rarest_pokemon = collection.order_by('card__rarity').first()
-    print(f"Rarest pokemon: {rarest_pokemon}")
-    
-    # Calculate collection value
-    collection_value = collection.aggregate(total_value=Sum('card__base_value'))['total_value'] or 0
-    
-    # Get type distribution
-    type_distribution = {}
-    for pokemon in collection:
-        for type_name in pokemon.card.types:
-            type_distribution[type_name] = type_distribution.get(type_name, 0) + 1
-
-    # Get trading stats
+    # Get trading statistics
     trade_stats = {
         'total_trades': TradeOffer.objects.filter(
-            Q(sender=request.user) | Q(recipient=request.user)
+            status='completed',
+            sender=profile_user
+        ).count() + TradeOffer.objects.filter(
+            status='completed',
+            recipient=profile_user
         ).count(),
         'successful_trades': TradeOffer.objects.filter(
-            Q(sender=request.user) | Q(recipient=request.user),
-            status='accepted'
+            status='completed',
+            sender=profile_user
         ).count()
     }
-
+    
     # Get recent trades
     recent_trades = TradeOffer.objects.filter(
-        Q(sender=request.user) | Q(recipient=request.user)
-    ).order_by('-created_at')[:5]
+        sender=profile_user
+    ).order_by('-updated_at')[:5]
+    
+    # Get marketplace statistics
+    market_stats = {
+        'total_sold': MarketplaceListing.objects.filter(
+            seller=profile_user,
+            status='sold'
+        ).count(),
+        'total_purchased': MarketplaceListing.objects.filter(
+            buyer=profile_user,
+            status='sold'
+        ).count(),
+        'total_value': Transaction.objects.filter(
+            listing__seller=profile_user
+        ).values('price_paid').aggregate(total=models.Sum('price_paid'))['total'] or 0
+    }
+    
+    # Get active listings
+    active_listings = MarketplaceListing.objects.filter(
+        seller=profile_user,
+        status='active'
+    ).select_related('pokemon', 'pokemon__card').order_by('-created_at')[:3]
+    
+    # Get recent transactions
+    recent_transactions = Transaction.objects.filter(
+        models.Q(listing__seller=profile_user) | models.Q(buyer=profile_user)
+    ).select_related(
+        'listing',
+        'listing__pokemon',
+        'listing__pokemon__card',
+        'listing__seller',
+        'buyer'
+    ).order_by('-transaction_date')[:5]
     
     context = {
-        'profile_user': request.user,
-        'collection_stats': {
-            'total_pokemon': total_pokemon,
-            'unique_pokemon': unique_pokemon,
-            'rarest_pokemon': rarest_pokemon.card if rarest_pokemon else None,
-            'collection_value': collection_value,
-            'type_distribution': type_distribution
-        },
+        'profile_user': profile_user,
         'trade_stats': trade_stats,
-        'recent_trades': recent_trades
+        'recent_trades': recent_trades,
+        'market_stats': market_stats,
+        'active_listings': active_listings,
+        'recent_transactions': recent_transactions,
     }
     
     return render(request, 'accounts/profile.html', context)
 
 @login_required
 def edit_profile(request):
-    """Edit user profile."""
     if request.method == 'POST':
-        # Update profile
-        profile = request.user.profile
-        
-        # Update bio
-        profile.bio = request.POST.get('bio', '')
-        
-        # Handle profile picture upload
-        if 'profile_picture' in request.FILES:
-            profile.profile_picture = request.FILES['profile_picture']
-        
-        profile.save()
-        messages.success(request, 'Profile updated successfully!')
-        return redirect('accounts:profile')
+        form = ProfileForm(request.POST, request.FILES, instance=request.user.profile)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile updated successfully!')
+            return redirect('accounts:profile')
+    else:
+        form = ProfileForm(instance=request.user.profile)
     
-    return render(request, 'accounts/edit_profile.html')
+    return render(request, 'accounts/edit_profile.html', {'form': form})
 
 def view_user_profile(request, username):
     """View another user's profile."""
