@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
 from .models import MarketplaceListing, Transaction, SavedListing, MarketplaceNotification
-from pokemon.models import UserCollection, Pokemon, UserPokemon
+from pokemon.models import UserCollection, Pokemon, UserPokemon, PokemonCard
 from .forms import ListingForm
 from django.utils import timezone
 from messaging.models import Message
@@ -90,7 +90,7 @@ def marketplace(request):
         'min_price': min_price,
         'max_price': max_price,
         'pokemon_types': [type[0] for type in Pokemon.type_choices],
-        'rarities': [rarity[0] for rarity in Pokemon.rarity_choices],
+        'rarities': PokemonCard.objects.values_list('rarity', flat=True).distinct().order_by('rarity'),
     }
     return render(request, 'marketplace/marketplace.html', context)
 
