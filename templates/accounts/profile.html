@@ -111,10 +111,10 @@
                         <div class="mb-2">
                             <div class="d-flex justify-content-between mb-1">
                                 <span class="pokemon-type type-{{ type_name }}">{{ type_name }}</span>
-                                <small>{{ count }} Pokémon</small>
+                                <small>{{ count|floatformat:2 }}%</small>
                             </div>
                             <div class="progress" style="height: 10px;">
-                                <div class="progress-bar pokemon-type-bg type-{{ type_name }}" role="progressbar" style="width: {{ count|floatformat:0 }}%;" aria-valuenow="{{ count }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                <div class="progress-bar pokemon-type-bg type-{{ type_name }}" role="progressbar" style="width: {{ count|floatformat:2 }}%;" aria-valuenow="{{ count }}" aria-valuemin="0" aria-valuemax="100"></div>
                             </div>
                         </div>
                     {% endfor %}

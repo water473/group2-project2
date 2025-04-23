@@ -72,24 +72,52 @@ def profile(request, username=None):
     else:
         profile_user = get_object_or_404(User, username=username)
     
+    # Get collection statistics
+    user_pokemon = UserPokemon.objects.filter(user=profile_user)
+    collection_stats = {
+        'total_pokemon': user_pokemon.count(),
+        'unique_pokemon': user_pokemon.values('card__name').distinct().count(),
+        'collection_value': user_pokemon.aggregate(total=Sum('card__base_value'))['total'] or 0,
+    }
+
+    # Calculate type distribution
+    type_distribution = {}
+    for pokemon in user_pokemon:
+        if pokemon.card.types:
+            for type_name in pokemon.card.types:
+                type_distribution[type_name] = type_distribution.get(type_name, 0) + 1
+    
+    # Convert to percentages
+    if type_distribution:
+        total = sum(type_distribution.values())
+        type_distribution = {k: (v / total) * 100 for k, v in type_distribution.items()}
+    
+    collection_stats['type_distribution'] = type_distribution
+
+    # Find rarest pokemon
+    rarest_pokemon = None
+    if user_pokemon.exists():
+        rarest_pokemon = user_pokemon.order_by('-card__base_value').first()
+        if rarest_pokemon:
+            collection_stats['rarest_pokemon'] = {
+                'name': rarest_pokemon.card.name,
+                'rarity': rarest_pokemon.card.rarity
+            }
+    
     # Get trading statistics
     trade_stats = {
         'total_trades': TradeOffer.objects.filter(
-            status='completed',
-            sender=profile_user
-        ).count() + TradeOffer.objects.filter(
-            status='completed',
-            recipient=profile_user
+            Q(sender=profile_user) | Q(recipient=profile_user)
         ).count(),
         'successful_trades': TradeOffer.objects.filter(
-            status='completed',
-            sender=profile_user
+            Q(sender=profile_user) | Q(recipient=profile_user),
+            status='completed'
         ).count()
     }
     
     # Get recent trades
     recent_trades = TradeOffer.objects.filter(
-        sender=profile_user
+        Q(sender=profile_user) | Q(recipient=profile_user)
     ).order_by('-updated_at')[:5]
     
     # Get marketplace statistics
@@ -104,7 +132,7 @@ def profile(request, username=None):
         ).count(),
         'total_value': Transaction.objects.filter(
             listing__seller=profile_user
-        ).values('price_paid').aggregate(total=models.Sum('price_paid'))['total'] or 0
+        ).aggregate(total=Sum('price_paid'))['total'] or 0
     }
     
     # Get active listings
@@ -115,7 +143,7 @@ def profile(request, username=None):
     
     # Get recent transactions
     recent_transactions = Transaction.objects.filter(
-        models.Q(listing__seller=profile_user) | models.Q(buyer=profile_user)
+        Q(listing__seller=profile_user) | Q(buyer=profile_user)
     ).select_related(
         'listing',
         'listing__pokemon',
@@ -126,6 +154,7 @@ def profile(request, username=None):
     
     context = {
         'profile_user': profile_user,
+        'collection_stats': collection_stats,
         'trade_stats': trade_stats,
         'recent_trades': recent_trades,
         'market_stats': market_stats,
