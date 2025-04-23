@@ -146,7 +146,7 @@
                     <select name="rarity" class="form-select">
                         <option value="">All Rarities</option>
                         {% for rarity in rarities %}
-                        <option value="{{ rarity }}" {% if rarity == rarity %}selected{% endif %}>{{ rarity }}</option>
+                        <option value="{{ rarity }}" {% if selected_rarity == rarity %}selected{% endif %}>{{ rarity }}</option>
                         {% endfor %}
                     </select>
                 </div>

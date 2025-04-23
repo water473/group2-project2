@@ -58,10 +58,15 @@ def marketplace(request):
         )
     
     if pokemon_type:
-        listings = listings.filter(pokemon__card__types__contains=[pokemon_type])
+        # Convert to lowercase for case-insensitive matching
+        pokemon_type = pokemon_type.lower()
+        listings = listings.extra(
+            where=["LOWER(pokemon_pokemoncard.types) LIKE %s"],
+            params=[f'%{pokemon_type}%']
+        )
     
     if rarity:
-        listings = listings.filter(pokemon__card__rarity=rarity)
+        listings = listings.filter(pokemon__card__rarity__iexact=rarity)
     
     if min_price:
         try:
@@ -81,7 +86,7 @@ def marketplace(request):
         'listings': listings,
         'search_query': search_query,
         'pokemon_type': pokemon_type,
-        'rarity': rarity,
+        'selected_rarity': rarity,
         'min_price': min_price,
         'max_price': max_price,
         'pokemon_types': [type[0] for type in Pokemon.type_choices],
