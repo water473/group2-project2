@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Profile
 from pokemon.models import Pokemon, UserCollection, UserPokemon
+from .forms import ProfileForm
 import random
 from django.db.models import Count, Sum
 from django.db.models import Q
