@@ -129,56 +129,153 @@
             </div>
         </div>
     </div>
-{% endif %}
 
-{% if featured_pokemon %}
-<div class="row my-5">
-    <div class="col-12 text-center mb-4">
-        <h2>Featured Pokémon</h2>
-        <p class="text-muted">Check out these rare finds in the marketplace!</p>
-    </div>
-    
-    <div class="row row-cols-1 row-cols-md-4 g-4">
-        {% for pokemon in featured_pokemon %}
+    <div class="row my-5">
+        <div class="col-12 text-center mb-4">
+            <h2><i class="fas fa-award me-2"></i>Your Achievements</h2>
+            <p class="text-muted">Track your progress and earn badges!</p>
+        </div>
+        
+        <div class="row row-cols-1 row-cols-md-4 g-4">
+            <!-- Collection Master Badge -->
             <div class="col">
-                <div class="card h-100 pokemon-card">
-                    <div class="position-absolute top-0 end-0 m-2">
-                        <span class="badge bg-warning rounded-pill">{{ pokemon.price }} coins</span>
-                    </div>
-                    <img src="{{ pokemon.image_url }}" class="card-img-top" alt="{{ pokemon.name }}">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ pokemon.name }}</h5>
-                        <div class="mb-2">
-                            <span class="badge bg-secondary pokemon-type type-{{ pokemon.primary_type }}">
-                                {{ pokemon.primary_type }}
-                            </span>
-                            {% if pokemon.secondary_type %}
-                                <span class="badge bg-secondary pokemon-type type-{{ pokemon.secondary_type }}">
-                                    {{ pokemon.secondary_type }}
-                                </span>
+                <div class="card h-100 achievement-card">
+                    <div class="card-body text-center">
+                        <div class="achievement-icon mb-3">
+                            {% if user.profile.pokemon_count >= 50 %}
+                                <i class="fas fa-crown fa-3x text-warning"></i>
+                            {% else %}
+                                <i class="fas fa-crown fa-3x text-secondary"></i>
                             {% endif %}
                         </div>
-                        <p class="card-text">
-                            <span class="rarity-{{ pokemon.rarity }}">
-                                {{ pokemon.get_rarity_display }}
-                            </span>
-                        </p>
-                        <p class="card-text">
-                            <small class="text-muted">
-                                Seller: {{ pokemon.seller }}<br>
-                                Listed: {{ pokemon.listed_date }}
-                            </small>
-                        </p>
-                    </div>
-                    <div class="card-footer">
-                        <div class="d-grid">
-                            <a href="#" class="btn btn-primary">View Listing</a>
+                        <h5 class="card-title">Collection Master</h5>
+                        <p class="card-text small text-muted">Collect 50 Pokémon</p>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-warning" role="progressbar" 
+                                 style="width: {% widthratio user.profile.pokemon_count|default:0 50 100 %}%;" 
+                                 aria-valuenow="{{ user.profile.pokemon_count|default:0 }}" 
+                                 aria-valuemin="0" aria-valuemax="50">
+                            </div>
                         </div>
+                        <p class="mt-2 mb-0 small">
+                            {{ user.profile.pokemon_count|default:0 }}/50 Pokémon
+                        </p>
                     </div>
                 </div>
             </div>
-        {% endfor %}
+
+            <!-- Trading Expert Badge -->
+            <div class="col">
+                <div class="card h-100 achievement-card">
+                    <div class="card-body text-center">
+                        <div class="achievement-icon mb-3">
+                            {% if user.profile.trade_count >= 25 %}
+                                <i class="fas fa-handshake fa-3x text-info"></i>
+                            {% else %}
+                                <i class="fas fa-handshake fa-3x text-secondary"></i>
+                            {% endif %}
+                        </div>
+                        <h5 class="card-title">Trading Expert</h5>
+                        <p class="card-text small text-muted">Complete 25 trades</p>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-info" role="progressbar" 
+                                 style="width: {% widthratio user.profile.trade_count|default:0 25 100 %}%;" 
+                                 aria-valuenow="{{ user.profile.trade_count|default:0 }}" 
+                                 aria-valuemin="0" aria-valuemax="25">
+                            </div>
+                        </div>
+                        <p class="mt-2 mb-0 small">
+                            {{ user.profile.trade_count|default:0 }}/25 Trades
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Market Mogul Badge -->
+            <div class="col">
+                <div class="card h-100 achievement-card">
+                    <div class="card-body text-center">
+                        <div class="achievement-icon mb-3">
+                            {% if user.profile.market_listings >= 10 %}
+                                <i class="fas fa-store fa-3x text-success"></i>
+                            {% else %}
+                                <i class="fas fa-store fa-3x text-secondary"></i>
+                            {% endif %}
+                        </div>
+                        <h5 class="card-title">Market Mogul</h5>
+                        <p class="card-text small text-muted">List 10 Pokémon for sale</p>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="width: {% widthratio user.profile.market_listings|default:0 10 100 %}%;" 
+                                 aria-valuenow="{{ user.profile.market_listings|default:0 }}" 
+                                 aria-valuemin="0" aria-valuemax="10">
+                            </div>
+                        </div>
+                        <p class="mt-2 mb-0 small">
+                            {{ user.profile.market_listings|default:0 }}/10 Listings
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wealthy Trainer Badge -->
+            <div class="col">
+                <div class="card h-100 achievement-card">
+                    <div class="card-body text-center">
+                        <div class="achievement-icon mb-3">
+                            {% if user.profile.coins >= 1500 %}
+                                <i class="fas fa-coins fa-3x text-warning"></i>
+                            {% else %}
+                                <i class="fas fa-coins fa-3x text-secondary"></i>
+                            {% endif %}
+                        </div>
+                        <h5 class="card-title">Wealthy Trainer</h5>
+                        <p class="card-text small text-muted">Earn 1500 coins</p>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-warning" role="progressbar" 
+                                 style="width: {% widthratio user.profile.coins|default:0 1500 100 %}%;" 
+                                 aria-valuenow="{{ user.profile.coins|default:0 }}" 
+                                 aria-valuemin="0" aria-valuemax="1500">
+                            </div>
+                        </div>
+                        <p class="mt-2 mb-0 small">
+                            {{ user.profile.coins|default:0 }}/1500 Coins
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
 {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.achievement-card {
+    transition: transform 0.2s;
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.achievement-card:hover {
+    transform: translateY(-5px);
+}
+
+.achievement-icon {
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.progress {
+    background-color: #f0f0f0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    transition: width 1s ease-in-out;
+}
+</style>
 {% endblock %} 
