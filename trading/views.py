@@ -411,10 +411,6 @@ def trade_offer_detail(request, offer_id):
                 messages.success(request, "Trade offer declined.")
                 return redirect('trading:trade_offers')
                 
-            elif response == 'counter':
-                # Redirect to counter offer page
-                return redirect('trading:counter_trade_offer', offer_id=offer_id)
-                
         elif is_sender and trade_offer.status == 'pending':
             action = request.POST.get('action')
             if action == 'cancel':
@@ -524,98 +520,6 @@ def decline_trade_offer(request, offer_id):
         messages.error(request, f"Error declining trade offer: {str(e)}")
     
     return redirect('trading:trade_offers')
-
-@login_required
-def counter_trade_offer(request, offer_id):
-    """Create a counter offer based on an existing trade offer."""
-    original_offer = get_object_or_404(
-        TradeOffer.objects.select_related('sender', 'recipient').prefetch_related(
-            'offered_pokemon', 'requested_pokemon'
-        ),
-        id=offer_id
-    )
-    
-    # Ensure user is the recipient
-    if request.user != original_offer.recipient:
-        messages.error(request, "You don't have permission to counter this trade offer.")
-        return redirect('trading:trade_offers')
-    
-    # Ensure trade is still pending
-    if original_offer.status != 'pending':
-        messages.error(request, "This trade offer is no longer pending.")
-        return redirect('trading:trade_offer_detail', offer_id=offer_id)
-    
-    if request.method == 'POST':
-        try:
-            # Get offered and requested Pokémon
-            offered_pokemon_ids = request.POST.getlist('offered_pokemon')
-            requested_pokemon_ids = request.POST.getlist('requested_pokemon')
-            
-            # Validate that user owns the offered Pokémon
-            offered_pokemon = UserPokemon.objects.filter(
-                id__in=offered_pokemon_ids,
-                user=request.user
-            )
-            if len(offered_pokemon) != len(offered_pokemon_ids):
-                messages.error(request, "You don't own all the Pokémon you're trying to offer.")
-                return redirect('trading:trade_offer_detail', offer_id=offer_id)
-            
-            # Validate that sender owns the requested Pokémon
-            requested_pokemon = UserPokemon.objects.filter(
-                id__in=requested_pokemon_ids,
-                user=original_offer.sender
-            )
-            if len(requested_pokemon) != len(requested_pokemon_ids):
-                messages.error(request, f"{original_offer.sender.username} doesn't own all the Pokémon you're requesting.")
-                return redirect('trading:trade_offer_detail', offer_id=offer_id)
-            
-            # Create the counter offer
-            counter_offer = TradeOffer.objects.create(
-                sender=request.user,
-                recipient=original_offer.sender,
-                message=request.POST.get('message', '')
-            )
-            
-            # Add Pokémon to the counter offer
-            counter_offer.offered_pokemon.set(offered_pokemon)
-            counter_offer.requested_pokemon.set(requested_pokemon)
-            
-            # Update original offer status
-            original_offer.status = 'declined'
-            original_offer.save()
-            
-            # Create notification for original sender
-            TradeNotification.objects.create(
-                user=original_offer.sender,
-                trade_offer=counter_offer,
-                notification_type='offer_received'
-            )
-            
-            messages.success(request, "Counter offer sent successfully!")
-            return redirect('trading:trade_offer_detail', offer_id=counter_offer.id)
-            
-        except Exception as e:
-            messages.error(request, f"Error creating counter offer: {str(e)}")
-            return redirect('trading:trade_offer_detail', offer_id=offer_id)
-    
-    # Get user's Pokémon that aren't in active trades
-    user_pokemon = UserPokemon.objects.filter(
-        user=request.user,
-        is_for_sale=False
-    ).select_related('card')
-    
-    # Get sender's Pokémon that aren't in active trades
-    sender_pokemon = UserPokemon.objects.filter(
-        user=original_offer.sender,
-        is_for_sale=False
-    ).select_related('card')
-    
-    context = {
-        'original_offer': original_offer,
-        'user_pokemon': user_pokemon,
-        'sender_pokemon': sender_pokemon
-    }
-    return render(request, 'trading/counter_trade_offer.html', context)
 
 @login_required
 def trade_history(request):

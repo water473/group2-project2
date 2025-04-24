@@ -102,7 +102,6 @@
                                     <option value="">Choose a response...</option>
                                     <option value="accept">Accept Offer</option>
                                     <option value="decline">Decline Offer</option>
-                                    <option value="counter">Counter Offer</option>
                                 </select>
                             </div>
 
@@ -152,14 +151,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     const responseSelect = document.getElementById('response');
     const messageTextarea = document.getElementById('message');
-
-    responseSelect.addEventListener('change', function() {
-        if (this.value === 'counter') {
-            messageTextarea.placeholder = 'Please explain your counter offer...';
-        } else {
-            messageTextarea.placeholder = 'Add a message to your response...';
-        }
-    });
 });
 </script>
 {% endblock %}
