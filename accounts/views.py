@@ -39,21 +39,15 @@ def register(request):
 
 def assign_starter_pokemon(user):
     """Assign starter Pokemon to a new user."""
-    # This is a placeholder function
-    # In a real implementation, you would:
-    # 1. Query available Pokemon from your database or API
-    # 2. Select a random subset (e.g., 3-5 Pokemon)
-    # 3. Create UserCollection entries for each Pokemon
-    
-    # For now, we'll just use dummy logic
     starter_pokemon = []
     
     # Assuming we have Pokemon in the database
     # If not, this would need to be adjusted when integrating with the Pokemon API
     all_pokemon = Pokemon.objects.all()
     if all_pokemon.exists():
-        # Select 3 random Pokemon
-        random_pokemon = random.sample(list(all_pokemon), min(3, all_pokemon.count()))
+        # Select Variable number of random Pokemon
+        NUM_POKEMON_START = 3
+        random_pokemon = random.sample(list(all_pokemon), min(NUM_POKEMON_START, all_pokemon.count()))
         
         # Add to user's collection
         for pokemon in random_pokemon:

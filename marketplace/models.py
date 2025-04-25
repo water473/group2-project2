@@ -38,6 +38,10 @@ class MarketplaceListing(models.Model):
     def complete_sale(self, buyer):
         if self.status != 'active':
             return False
+
+        # makes sure the user has enough coins
+        if buyer.profile.coins < self.price:
+            raise ValueError("Buyer does not have enough coins.")
         
         # Transfer Pokemon ownership
         self.pokemon.user = buyer
