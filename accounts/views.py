@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Profile
-from pokemon.models import Pokemon, UserCollection, UserPokemon
+from pokemon.models import Pokemon, UserCollection, UserPokemon, WishlistItem
 from .forms import ProfileForm
 import random
 from django.db.models import Count, Sum
@@ -161,6 +161,7 @@ def profile(request, username=None):
         'market_stats': market_stats,
         'active_listings': active_listings,
         'recent_transactions': recent_transactions,
+        'wishlist_items': WishlistItem.objects.filter(user=profile_user).select_related('pokemon_card'),
     }
     
     return render(request, 'accounts/profile.html', context)

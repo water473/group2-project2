@@ -313,83 +313,147 @@
     </div>
 </div>
 
-{% if user == profile_user %}
-    <!-- Recommendations -->
-    <div class="row">
-        <div class="col-12 mb-4">
-            <div class="card shadow">
-                <div class="card-header bg-yellow text-white">
-                    <h3 class="mb-0">Recommendations For You</h3>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        {% if recommended_pokemon %}
-                            <div class="col-md-6 mb-4 mb-md-0">
-                                <h5 class="mb-3"><i class="fas fa-search me-2"></i>Pokémon You Might Like</h5>
-                                <div class="row row-cols-2 g-3">
-                                    {% for pokemon in recommended_pokemon %}
-                                        <div class="col">
-                                            <div class="card h-100 pokemon-card">
-                                                <div class="card-body p-2 text-center">
-                                                    <img src="{{ pokemon.image_url }}" class="img-fluid mb-2" style="max-height: 80px;" alt="{{ pokemon.name }}">
-                                                    <h6 class="card-title mb-1">{{ pokemon.name }}</h6>
-                                                    <div>
-                                                        <span class="badge bg-secondary pokemon-type type-{{ pokemon.primary_type }}">
-                                                            {{ pokemon.primary_type }}
-                                                        </span>
-                                                        {% if pokemon.secondary_type %}
-                                                            <span class="badge bg-secondary pokemon-type type-{{ pokemon.secondary_type }}">
-                                                                {{ pokemon.secondary_type }}
-                                                            </span>
-                                                        {% endif %}
-                                                    </div>
-                                                </div>
-                                            </div>
+<!-- Wishlist Section -->
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-yellow text-white d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">Wishlist</h3>
+                {% if user == profile_user %}
+                    <a href="{% url 'pokemon:card_list' %}" class="btn btn-browse">
+                        <i class="fas fa-search me-2"></i>Browse Cards
+                    </a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if wishlist_items %}
+                    <div class="row g-3">
+                        {% for item in wishlist_items %}
+                            <div class="col-md-3 col-sm-6">
+                                <div class="card h-100 wishlist-card">
+                                    <div class="card-img-wrapper">
+                                        <img src="{{ item.pokemon_card.image_url }}" class="card-img-top" alt="{{ item.pokemon_card.name }}">
+                                    </div>
+                                    <div class="card-body p-2">
+                                        <h6 class="card-title mb-1">{{ item.pokemon_card.name }}</h6>
+                                        <div class="card-details mb-2">
+                                            <small class="text-muted d-block">{{ item.pokemon_card.set_name }}</small>
+                                            <span class="badge bg-{{ item.pokemon_card.rarity|lower }} mb-1">{{ item.pokemon_card.rarity }}</span>
                                         </div>
-                                    {% endfor %}
+                                        {% if user == profile_user %}
+                                            <form method="POST" action="{% url 'pokemon:remove_from_wishlist' item.pokemon_card.id %}" class="mt-auto">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="next" value="{% url 'accounts:view_user_profile' profile_user.username %}">
+                                                <button type="submit" class="btn btn-danger btn-sm w-100">
+                                                    <i class="fas fa-trash-alt me-1"></i>Remove
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </div>
-                        {% endif %}
-
-                        {% if recommended_traders %}
-                            <div class="col-md-6">
-                                <h5 class="mb-3"><i class="fas fa-users me-2"></i>Trainers With Similar Collections</h5>
-                                <div class="list-group">
-                                    {% for trainer in recommended_traders %}
-                                        <div class="list-group-item">
-                                            <div class="d-flex align-items-center">
-                                                <div class="flex-shrink-0">
-                                                    {% if trainer.profile.profile_picture %}
-                                                        <img src="{{ trainer.profile.profile_picture.url }}" class="rounded-circle" width="40" height="40" alt="{{ trainer.username }}">
-                                                    {% else %}
-                                                        <img src="https://via.placeholder.com/40" class="rounded-circle" width="40" height="40" alt="{{ trainer.username }}">
-                                                    {% endif %}
-                                                </div>
-                                                <div class="flex-grow-1 ms-3">
-                                                    <div class="d-flex justify-content-between">
-                                                        <h6 class="mb-0">{{ trainer.username }}</h6>
-                                                        <span class="badge bg-primary">Level {{ trainer.profile.trainer_level }}</span>
-                                                    </div>
-                                                    <small class="text-muted">{{ trainer.profile.collection_summary }}</small>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        {% endif %}
-
-                        {% if not recommended_pokemon and not recommended_traders %}
-                            <div class="col-12 text-center py-4">
-                                <i class="fas fa-lightbulb mb-3" style="font-size: 3rem; opacity: 0.3;"></i>
-                                <h5>We're preparing your recommendations!</h5>
-                                <p class="text-muted">As you add more Pokémon to your collection and interact with other trainers, we'll suggest Pokémon and people you might be interested in.</p>
-                            </div>
-                        {% endif %}
+                        {% endfor %}
                     </div>
-                </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-star mb-3" style="font-size: 3rem; opacity: 0.3;"></i>
+                        <p class="text-muted">No items in wishlist</p>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
-{% endif %}
+</div>
+
+<style>
+.wishlist-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.wishlist-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.wishlist-card .card-img-wrapper {
+    height: 140px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    padding: 0.5rem;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.wishlist-card .card-img-wrapper img {
+    max-height: 100%;
+    width: auto;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+.wishlist-card:hover .card-img-wrapper img {
+    transform: scale(1.05);
+}
+
+.wishlist-card .card-title {
+    font-size: 0.9rem;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.wishlist-card .card-details {
+    font-size: 0.8rem;
+}
+
+.badge.bg-common { background-color: #B0B0B0 !important; }
+.badge.bg-uncommon { background-color: #4CAF50 !important; }
+.badge.bg-rare { background-color: #2196F3 !important; }
+.badge.bg-ultra_rare { background-color: #9C27B0 !important; }
+.badge.bg-legendary { background-color: #FF9800 !important; }
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-danger:hover {
+    background-color: #bb2d3b;
+    border-color: #b02a37;
+}
+
+.btn-browse {
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #2c3e50;
+    border: none;
+    border-radius: 20px;
+    padding: 0.5rem 1.2rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-browse:hover {
+    background-color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    color: #2c3e50;
+}
+
+.btn-browse:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-browse i {
+    color: #f39c12;
+}
+</style>
 {% endblock %} 

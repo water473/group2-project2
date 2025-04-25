@@ -128,3 +128,15 @@ class UserPokemon(models.Model):
     class Meta:
         ordering = ['-acquired_date']
         unique_together = ['user', 'card']  # Prevent duplicates in collection
+
+class WishlistItem(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='wishlist_items')
+    pokemon_card = models.ForeignKey('PokemonCard', on_delete=models.CASCADE)
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'pokemon_card')
+        ordering = ['-added_at']
+
+    def __str__(self):
+        return f"{self.user.username}'s wishlist item: {self.pokemon_card.name}"

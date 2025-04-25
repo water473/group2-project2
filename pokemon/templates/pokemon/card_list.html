@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Pokemon Card Catalog</h2>
+
+    <!-- Filters -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <input type="text" name="search" class="form-control" placeholder="Search cards..." value="{{ search_query }}">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select name="type" class="form-select">
+                        <option value="">All Types</option>
+                        {% for type in types %}
+                            <option value="{{ type }}" {% if type == type_filter %}selected{% endif %}>{{ type }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="rarity" class="form-select">
+                        <option value="">All Rarities</option>
+                        {% for rarity in rarities %}
+                            <option value="{{ rarity }}" {% if rarity == rarity_filter %}selected{% endif %}>{{ rarity }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary flex-grow-1">Filter</button>
+                    {% if search_query or type_filter or rarity_filter %}
+                        <a href="{% url 'pokemon:card_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Cards Grid -->
+    {% if cards %}
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+            {% for card in cards %}
+                <div class="col">
+                    <div class="card h-100">
+                        <img src="{{ card.image_url }}" class="card-img-top" alt="{{ card.name }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ card.name }}</h5>
+                            <p class="card-text">
+                                <strong>Set:</strong> {{ card.set_name }}<br>
+                                <strong>Rarity:</strong> {{ card.rarity }}
+                            </p>
+                            <div class="d-flex flex-wrap gap-1 mb-2">
+                                {% for type in card.types %}
+                                    <span class="badge bg-primary">{{ type }}</span>
+                                {% endfor %}
+                            </div>
+                            {% if card.id in wishlist_cards %}
+                                <button class="btn btn-secondary btn-sm" disabled>
+                                    <i class="fas fa-star me-1"></i>In Wishlist
+                                </button>
+                            {% else %}
+                                <form method="POST" action="{% url 'pokemon:add_to_wishlist' card.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-star me-1"></i>Add to Wishlist
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            No cards found matching your criteria.
+            {% if search_query or type_filter or rarity_filter %}
+                <a href="{% url 'pokemon:card_list' %}" class="alert-link">Clear filters</a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.card {
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.card-img-top {
+    height: 250px;
+    object-fit: contain;
+    padding: 1rem;
+    background: #f8f9fa;
+}
+</style>
+{% endblock %} 

@@ -1,8 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import PokemonCard, UserPokemon
+from .models import PokemonCard, UserPokemon, WishlistItem
 from marketplace.models import MarketplaceListing
+from django.http import JsonResponse
+from django.urls import reverse
 
 # Create your views here.
 
@@ -104,3 +106,85 @@ def edit_collection_pokemon(request, collection_id):
         return redirect('pokemon:collection_pokemon_detail', collection_id=user_pokemon.id)
     
     return render(request, 'pokemon/edit_collection_pokemon.html', {'user_pokemon': user_pokemon})
+
+@login_required
+def wishlist(request):
+    wishlist_items = WishlistItem.objects.filter(user=request.user).select_related('pokemon_card')
+    return render(request, 'pokemon/wishlist.html', {'wishlist_items': wishlist_items})
+
+@login_required
+def add_to_wishlist(request, card_id):
+    card = get_object_or_404(PokemonCard, id=card_id)
+    
+    if not WishlistItem.objects.filter(user=request.user, pokemon_card=card).exists():
+        WishlistItem.objects.create(user=request.user, pokemon_card=card)
+        messages.success(request, f"{card.name} added to your wishlist!")
+    else:
+        messages.info(request, f"{card.name} is already in your wishlist!")
+    
+    return redirect('pokemon:card_list')
+
+@login_required
+def remove_from_wishlist(request, card_id):
+    """Remove a card from the user's wishlist."""
+    if request.method == 'POST':
+        try:
+            wishlist_item = WishlistItem.objects.get(
+                user=request.user,
+                pokemon_card_id=card_id
+            )
+            wishlist_item.delete()
+            messages.success(request, 'Card removed from wishlist.')
+        except WishlistItem.DoesNotExist:
+            messages.error(request, 'Card not found in wishlist.')
+    
+    # Get the next URL from POST data, fallback to wishlist page
+    next_url = request.POST.get('next', reverse('pokemon:wishlist'))
+    return redirect(next_url)
+
+@login_required
+def card_list(request):
+    """View all available Pokemon cards."""
+    # Get filter parameters
+    search_query = request.GET.get('search', '')
+    type_filter = request.GET.get('type', '')
+    rarity_filter = request.GET.get('rarity', '')
+    
+    # Start with all cards
+    cards = PokemonCard.objects.all()
+    
+    # Apply filters
+    if search_query:
+        cards = cards.filter(name__icontains=search_query)
+    
+    if type_filter:
+        cards = cards.filter(types__icontains=type_filter)
+    
+    if rarity_filter:
+        cards = cards.filter(rarity=rarity_filter)
+    
+    # Get all available types and rarities for filters
+    types = set()
+    rarities = set()
+    for card in PokemonCard.objects.all():
+        if card.types:
+            types.update(card.types)
+        if card.rarity:
+            rarities.add(card.rarity)
+    
+    # Get user's wishlist items
+    wishlist_cards = set(WishlistItem.objects.filter(
+        user=request.user
+    ).values_list('pokemon_card_id', flat=True))
+    
+    context = {
+        'cards': cards,
+        'types': sorted(list(types)),
+        'rarities': sorted(list(rarities)),
+        'search_query': search_query,
+        'type_filter': type_filter,
+        'rarity_filter': rarity_filter,
+        'wishlist_cards': wishlist_cards,
+    }
+    
+    return render(request, 'pokemon/card_list.html', context)

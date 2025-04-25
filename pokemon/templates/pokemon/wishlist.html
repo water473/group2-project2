@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>My Wishlist</h2>
+    {% if wishlist_items %}
+        <div class="row">
+            {% for item in wishlist_items %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <img src="{{ item.pokemon_card.image_url }}" class="card-img-top" alt="{{ item.pokemon_card.name }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ item.pokemon_card.name }}</h5>
+                            <p class="card-text">
+                                <strong>Set:</strong> {{ item.pokemon_card.set_name }}<br>
+                                <strong>Rarity:</strong> {{ item.pokemon_card.rarity }}<br>
+                                <strong>Market Price:</strong> ${{ item.pokemon_card.market_price }}
+                            </p>
+                            <form method="POST" action="{% url 'pokemon:remove_from_wishlist' item.pokemon_card.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger">Remove from Wishlist</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>Your wishlist is empty. Browse the <a href="{% url 'pokemon:card_list' %}">card catalog</a> to add cards to your wishlist.</p>
+    {% endif %}
+</div>
+{% endblock %} 
