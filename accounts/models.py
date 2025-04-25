@@ -39,6 +39,14 @@ class Profile(models.Model):
     def __str__(self):
         return self.user.username
 
+class NotificationPreferences(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='notification_preferences')
+    trading_notifications = models.BooleanField(default=True)
+    marketplace_notifications = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"Notification preferences for {self.user.username}"
+
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
@@ -47,3 +55,9 @@ def create_user_profile(sender, instance, created, **kwargs):
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
+
+@receiver(post_save, sender=User)
+def create_notification_preferences(sender, instance, created, **kwargs):
+    """Create notification preferences when a new user is created."""
+    if created:
+        NotificationPreferences.objects.create(user=instance)

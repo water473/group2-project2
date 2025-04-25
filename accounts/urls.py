@@ -8,4 +8,5 @@ urlpatterns = [
     path('profile/', views.profile, name='profile'),
     path('profile/edit/', views.edit_profile, name='edit_profile'),
     path('profile/<str:username>/', views.profile, name='view_user_profile'),
+    path('preferences/notifications/', views.notification_preferences, name='notification_preferences'),
 ] 

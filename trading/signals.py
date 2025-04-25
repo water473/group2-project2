@@ -8,29 +8,29 @@ from messaging.models import Message
 def create_trade_notifications(sender, instance, created, **kwargs):
     """Create notifications when a trade offer is created or updated."""
     if created:
-        # Notify recipient of new trade offer
-        TradeNotification.objects.create(
-            user=instance.recipient,
-            trade_offer=instance,
-            notification_type='offer_received'
-        )
-        
-        # Send a message to the recipient
-        Message.objects.create(
-            sender=instance.sender,
-            recipient=instance.recipient,
-            subject=f"New Trade Offer from {instance.sender.username}",
-            content=f"{instance.sender.username} has offered you a trade. Check your trade offers to respond."
-        )
+        # Only create notification if user has trading notifications enabled
+        if instance.recipient.notification_preferences.trading_notifications:
+            TradeNotification.objects.create(
+                user=instance.recipient,
+                trade_offer=instance,
+                notification_type='offer_received'
+            )
+            
+            Message.objects.create(
+                sender=instance.sender,
+                recipient=instance.recipient,
+                subject=f"New Trade Offer from {instance.sender.username}",
+                content=f"{instance.sender.username} has offered you a trade. Check your trade offers to respond."
+            )
     else:
         # Handle status changes
         if instance.status == 'accepted':
-            # Notify sender that their offer was accepted
-            TradeNotification.objects.create(
-                user=instance.sender,
-                trade_offer=instance,
-                notification_type='offer_accepted'
-            )
+            if instance.sender.notification_preferences.trading_notifications:
+                TradeNotification.objects.create(
+                    user=instance.sender,
+                    trade_offer=instance,
+                    notification_type='offer_accepted'
+                )
             
             # Create trade history record
             TradeHistory.objects.create(
@@ -47,12 +47,12 @@ def create_trade_notifications(sender, instance, created, **kwargs):
             )
             
         elif instance.status == 'declined':
-            # Notify sender that their offer was declined
-            TradeNotification.objects.create(
-                user=instance.sender,
-                trade_offer=instance,
-                notification_type='offer_declined'
-            )
+            if instance.sender.notification_preferences.trading_notifications:
+                TradeNotification.objects.create(
+                    user=instance.sender,
+                    trade_offer=instance,
+                    notification_type='offer_declined'
+                )
             
             # Create trade history record
             TradeHistory.objects.create(
@@ -69,13 +69,14 @@ def create_trade_notifications(sender, instance, created, **kwargs):
             )
             
         elif instance.status == 'cancelled':
-            # Notify both parties
+            # Notify both parties if they have notifications enabled
             for user in [instance.sender, instance.recipient]:
-                TradeNotification.objects.create(
-                    user=user,
-                    trade_offer=instance,
-                    notification_type='trade_cancelled'
-                )
+                if user.notification_preferences.trading_notifications:
+                    TradeNotification.objects.create(
+                        user=user,
+                        trade_offer=instance,
+                        notification_type='trade_cancelled'
+                    )
             
             # Create trade history record
             TradeHistory.objects.create(

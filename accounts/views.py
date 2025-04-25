@@ -3,7 +3,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Profile
+from .models import Profile, NotificationPreferences
 from pokemon.models import Pokemon, UserCollection, UserPokemon, WishlistItem
 from .forms import ProfileForm
 import random
@@ -183,3 +183,16 @@ def view_user_profile(request, username):
     """View another user's profile."""
     user = get_object_or_404(User, username=username)
     return render(request, 'accounts/user_profile.html', {'profile_user': user})
+
+@login_required
+def notification_preferences(request):
+    """View and update notification preferences."""
+    if request.method == 'POST':
+        preferences = request.user.notification_preferences
+        preferences.trading_notifications = request.POST.get('trading_notifications') == 'on'
+        preferences.marketplace_notifications = request.POST.get('marketplace_notifications') == 'on'
+        preferences.save()
+        messages.success(request, 'Notification preferences updated successfully.')
+        return redirect('accounts:notification_preferences')
+
+    return render(request, 'accounts/notification_preferences.html')
