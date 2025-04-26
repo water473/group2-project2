@@ -5,6 +5,7 @@ from .models import PokemonCard, UserPokemon, WishlistItem
 from marketplace.models import MarketplaceListing
 from django.http import JsonResponse
 from django.urls import reverse
+import logging
 
 # Create your views here.
 
@@ -188,3 +189,64 @@ def card_list(request):
     }
     
     return render(request, 'pokemon/card_list.html', context)
+
+@login_required
+def generate_description(request):
+    """Generate a description for a Pokemon using OpenRouter API."""
+    if request.method == 'POST':
+        import json
+        import os
+        import requests
+        import logging
+        
+        logger = logging.getLogger(__name__)
+        
+        try:
+            data = json.loads(request.body)
+            pokemon_name = data.get('pokemon_name')
+            logger.info(f"Generating description for Pokemon: {pokemon_name}")
+            
+            if not pokemon_name:
+                return JsonResponse({'error': 'Pokemon name is required'}, status=400)
+            
+            api_key = os.getenv("OPEN_ROUTER_API_KEY")
+            if not api_key:
+                logger.error("OPEN_ROUTER_API_KEY not found in environment variables")
+                return JsonResponse({'error': 'API key not found'}, status=500)
+            
+            headers = {
+                'Authorization': f'Bearer {api_key}',
+                'Content-Type': 'application/json',
+                'HTTP-Referer': request.build_absolute_uri('/'),
+                'X-Title': 'PokeTrade'
+            }
+            
+            logger.info("Making API request to OpenRouter")
+            response = requests.post(
+                'https://openrouter.ai/api/v1/chat/completions',
+                headers=headers,
+                json={
+                    'model': 'deepseek/deepseek-r1:free',
+                    'messages': [{
+                        'role': 'user',
+                        'content': f'Write a brief, engaging description for the Pokemon {pokemon_name}. Keep it under 50 words. Do not include the work count or any other text other than the description.'
+                    }]
+                }
+            )
+            
+            logger.info(f"OpenRouter API response status: {response.status_code}")
+            logger.info(f"OpenRouter API response: {response.text}")
+            
+            if response.status_code == 200:
+                description = response.json()['choices'][0]['message']['content']
+                return JsonResponse({'description': description})
+            else:
+                error_msg = f'API Error: {response.status_code} - {response.text}'
+                logger.error(error_msg)
+                return JsonResponse({'error': error_msg}, status=500)
+                
+        except Exception as e:
+            logger.exception("Exception in generate_description view")
+            return JsonResponse({'error': f'Exception: {str(e)}'}, status=500)
+    
+    return JsonResponse({'error': 'Method not allowed'}, status=405)

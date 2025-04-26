@@ -154,6 +154,11 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
+        'pokemon': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
     },
 }
 

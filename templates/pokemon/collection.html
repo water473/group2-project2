@@ -84,7 +84,7 @@
                                 <a href="{% url 'pokemon:collection_pokemon_detail' pokemon.id %}" class="btn btn-sm btn-outline-primary">
                                     <i class="fas fa-info-circle"></i> Details
                                 </a>
-                                <a href="{% url 'pokemon:edit_collection_pokemon' pokemon.id %}" class="btn btn-sm btn-outline-secondary">
+                                <a href="{% url 'pokemon:edit_collection_pokemon' collection_id=pokemon.id %}" class="btn btn-sm btn-outline-secondary">
                                     <i class="fas fa-edit"></i> Edit
                                 </a>
                             </div>

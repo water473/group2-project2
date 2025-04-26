@@ -38,7 +38,13 @@
                         
                         <div class="mb-3">
                             <label for="description" class="form-label">Description (Optional)</label>
-                            <textarea class="form-control" id="description" name="description" rows="3" placeholder="Add a description for your Pokémon">{{ user_pokemon.description }}</textarea>
+                            <div class="input-group">
+                                <textarea class="form-control" id="description" name="description" rows="3" placeholder="Add a description for your Pokémon">{{ user_pokemon.description }}</textarea>
+                                <button type="button" class="btn btn-outline-primary" id="generate-description">
+                                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                    <span class="button-text">Generate</span>
+                                </button>
+                            </div>
                         </div>
                         
                         <div class="mb-3">
@@ -76,6 +82,43 @@
             priceField.style.display = 'block';
         } else {
             priceField.style.display = 'none';
+        }
+    });
+
+    // Generate description functionality
+    document.getElementById('generate-description').addEventListener('click', async function() {
+        const button = this;
+        const spinner = button.querySelector('.spinner-border');
+        const buttonText = button.querySelector('.button-text');
+        const pokemonName = "{{ user_pokemon.card.name }}";
+        const descriptionField = document.getElementById('description');
+        
+        // Show loading state
+        button.disabled = true;
+        spinner.classList.remove('d-none');
+        buttonText.textContent = 'Generating...';
+        
+        try {
+            const response = await fetch('/pokemon/generate-description/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ pokemon_name: pokemonName })
+            });
+            
+            if (!response.ok) throw new Error('Failed to generate description');
+            
+            const data = await response.json();
+            descriptionField.value = data.description;
+        } catch (error) {
+            alert('Failed to generate description. Please try again.');
+        } finally {
+            // Reset button state
+            button.disabled = false;
+            spinner.classList.add('d-none');
+            buttonText.textContent = 'Generate';
         }
     });
 </script>
