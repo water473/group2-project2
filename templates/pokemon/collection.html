@@ -174,18 +174,21 @@ document.getElementById('filter_type').addEventListener('change', function() {
     
     // Get data from the hidden div
     const pokemonData = document.getElementById('pokemon-data');
-    const types = pokemonData.getAttribute('data-types').split(',');
-    const rarities = pokemonData.getAttribute('data-rarities').split(',');
+    const types = pokemonData.getAttribute('data-types').split(',').filter(Boolean);
+    const rarities = pokemonData.getAttribute('data-rarities').split(',').filter(Boolean);
+    
+    console.log('Types:', types);  // Debug log
+    console.log('Rarities:', rarities);  // Debug log
     
     if (this.value === 'type') {
         types.forEach(type => {
-            if (type) {  // Skip empty values
+            if (type && type !== 'None') {
                 filterValue.innerHTML += `<option value="${type}">${type}</option>`;
             }
         });
     } else if (this.value === 'rarity') {
         rarities.forEach(rarity => {
-            if (rarity) {  // Skip empty values
+            if (rarity) {
                 filterValue.innerHTML += `<option value="${rarity}">${rarity}</option>`;
             }
         });

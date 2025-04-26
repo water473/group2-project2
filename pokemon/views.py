@@ -23,20 +23,25 @@ def collection(request):
     # Apply filters if provided
     if filter_type and filter_value:
         if filter_type == 'type':
-            user_pokemon = user_pokemon.filter(card__types__name=filter_value)
+            # Filter by type using a list comprehension
+            user_pokemon = [pokemon for pokemon in user_pokemon 
+                          if filter_value in pokemon.card.types]
         elif filter_type == 'rarity':
             user_pokemon = user_pokemon.filter(card__rarity=filter_value)
     
     # Apply sorting
     if sort == 'name':
-        user_pokemon = user_pokemon.order_by('card__name')
+        user_pokemon = sorted(user_pokemon, key=lambda x: x.card.name)
     elif sort == 'date':
-        user_pokemon = user_pokemon.order_by('-acquired_date')
+        user_pokemon = sorted(user_pokemon, key=lambda x: x.acquired_date, reverse=True)
     elif sort == 'rarity':
-        user_pokemon = user_pokemon.order_by('card__rarity')
+        user_pokemon = sorted(user_pokemon, key=lambda x: x.card.rarity)
     
     # Get all Pokemon types and rarities for the filter dropdowns
-    pokemon_types = set(PokemonCard.objects.values_list('types__name', flat=True).distinct())
+    pokemon_types = set()
+    for card in PokemonCard.objects.all():
+        if card.types:
+            pokemon_types.update(card.types)
     pokemon_rarities = set(PokemonCard.objects.values_list('rarity', flat=True).distinct())
     
     context = {
