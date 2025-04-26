@@ -86,7 +86,8 @@
     });
 
     // Generate description functionality
-    document.getElementById('generate-description').addEventListener('click', async function() {
+    document.getElementById('generate-description').addEventListener('click', async function(e) {
+        e.preventDefault();  // Prevent default form submission
         const button = this;
         const spinner = button.querySelector('.spinner-border');
         const buttonText = button.querySelector('.button-text');
@@ -113,6 +114,7 @@
             const data = await response.json();
             descriptionField.value = data.description;
         } catch (error) {
+            console.error('Error generating description:', error);
             alert('Failed to generate description. Please try again.');
         } finally {
             // Reset button state
