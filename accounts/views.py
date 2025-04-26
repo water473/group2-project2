@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Profile, NotificationPreferences
-from pokemon.models import Pokemon, UserCollection, UserPokemon, WishlistItem
+from pokemon.models import Pokemon, UserCollection, UserPokemon, WishlistItem, PokemonCard
 from .forms import ProfileForm
 import random
 from django.db.models import Count, Sum
@@ -20,12 +20,10 @@ def register(request):
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-
-            # Assign random Pokemon to the new user
-            starter_pokemon = assign_starter_pokemon(user)
+            print(f"Creating account for user: {user.username}")  # Debug log
 
             messages.success(request,
-                             f'Account created successfully! You received {len(starter_pokemon)} starter Pokemon.')
+                             'Account created successfully! You received 6 starter Pokemon.')
             return redirect('login')
         else:
             # Add warnings for form errors
@@ -40,23 +38,26 @@ def register(request):
 def assign_starter_pokemon(user):
     """Assign starter Pokemon to a new user."""
     starter_pokemon = []
+    print(f"Starting Pokemon assignment for user: {user.username}")  # Debug log
     
-    # Assuming we have Pokemon in the database
-    # If not, this would need to be adjusted when integrating with the Pokemon API
-    all_pokemon = Pokemon.objects.all()
+    # Get all available Pokemon cards
+    all_pokemon = PokemonCard.objects.all()
     if all_pokemon.exists():
-        # Select Variable number of random Pokemon
-        NUM_POKEMON_START = 3
+        # Select 6 random Pokemon
+        NUM_POKEMON_START = 6
         random_pokemon = random.sample(list(all_pokemon), min(NUM_POKEMON_START, all_pokemon.count()))
+        print(f"Selected {len(random_pokemon)} random Pokemon")  # Debug log
         
         # Add to user's collection
         for pokemon in random_pokemon:
-            user_pokemon = UserCollection.objects.create(
+            user_pokemon = UserPokemon.objects.create(
                 user=user,
-                pokemon=pokemon
+                card=pokemon
             )
             starter_pokemon.append(user_pokemon)
+            print(f"Added {pokemon.name} to {user.username}'s collection")  # Debug log
     
+    print(f"Completed Pokemon assignment for {user.username}. Total assigned: {len(starter_pokemon)}")  # Debug log
     return starter_pokemon
 
 @login_required
